@@ -91,10 +91,17 @@ class Video(BaseModel):
 @app.post("/video-request/")
 def create_video_request(video_request: VideoRequest):
     request_id = str(ObjectId())
-    video_request_dict = video_request.dict()
+    video_request_dict = video_request.model_dump()
     video_request_dict["_id"] = request_id
     video_requests.insert_one(video_request_dict)
     return {"request_id": request_id}
+
+
+class AssetStatus(str, Enum):
+    UPLOADED = "uploaded"
+    PROCESSING = "processing"
+    COMPLETED = "completed"
+    FAILED = "failed"
 
 
 class ImageMetadata(BaseModel):
@@ -113,7 +120,7 @@ class VideoMetadata(BaseModel):
 
 
 class Asset(BaseModel):
-    id: str
+    id: str = Field(alias="_id")
     request_id: str
     filename: str
     content_type: str
@@ -123,6 +130,7 @@ class Asset(BaseModel):
     description: str = ""
     transcript: str = ""
     processed: bool = False
+    status: AssetStatus = AssetStatus.UPLOADED
     metadata: Union[ImageMetadata, VideoMetadata] = None
 
     @validator("metadata", pre=True, always=True)
@@ -163,7 +171,7 @@ async def upload_media(request_id: str = Path(...), file: UploadFile = File(...)
 
     # Create the asset document using Pydantic models
     asset = Asset(
-        id=asset_id,
+        _id=asset_id,
         request_id=request_id,
         filename=file.filename,
         content_type=content_type,
@@ -171,6 +179,8 @@ async def upload_media(request_id: str = Path(...), file: UploadFile = File(...)
         file_extension=file_extension,
         filename_without_extension=filename_without_extension
     )
+
+    print(asset.model_dump(by_alias=True))
 
     # Save the asset in MongoDB
     assets.insert_one(asset.model_dump())
