@@ -180,10 +180,8 @@ async def upload_media(request_id: str = Path(...), file: UploadFile = File(...)
         filename_without_extension=filename_without_extension
     )
 
-    print(asset.model_dump(by_alias=True))
-
     # Save the asset in MongoDB
-    assets.insert_one(asset.model_dump())
+    assets.insert_one(asset.model_dump(by_alias=True))
 
     return {"asset_id": asset_id}
 
