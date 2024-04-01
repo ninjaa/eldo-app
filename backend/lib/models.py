@@ -41,6 +41,8 @@ class Video(BaseModel):
 
 class AssetStatus(str, Enum):
     UPLOADED = "uploaded"
+    DESCRIPTION_STARTED = "description_started"
+    DESCRIPTION_COMPLETE = "description_complete"
     PROCESSING = "processing"
     COMPLETED = "completed"
     FAILED = "failed"
