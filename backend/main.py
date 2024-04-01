@@ -1,13 +1,12 @@
-from typing import List
-import pymongo
+from typing import List, Literal
 import os
 from typing import Union
 import logging
 
-from fastapi import FastAPI, File, UploadFile, Path, Request, Response
+from fastapi import FastAPI, File, UploadFile, Path, Response, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field, validator
 from dotenv import load_dotenv
 from bson.objectid import ObjectId
 from fastapi.middleware.cors import CORSMiddleware
@@ -91,11 +90,50 @@ class Video(BaseModel):
 
 @app.post("/video-request/")
 def create_video_request(video_request: VideoRequest):
+    request_id = str(ObjectId())
     video_request_dict = video_request.dict()
-    result = video_requests.insert_one(video_request_dict)
-    request_id = str(result.inserted_id)
-
+    video_request_dict["_id"] = request_id
+    video_requests.insert_one(video_request_dict)
     return {"request_id": request_id}
+
+
+class ImageMetadata(BaseModel):
+    width: int = -1
+    height: int = -1
+    content_type: Literal["image"]
+
+
+class VideoMetadata(BaseModel):
+    duration: float = -1
+    width: int = -1
+    height: int = -1
+    fps: float = -1
+    has_speech: bool = False
+    content_type: Literal["video"]
+
+
+class Asset(BaseModel):
+    id: str
+    request_id: str
+    filename: str
+    content_type: str
+    file_path: str
+    file_extension: str
+    filename_without_extension: str
+    description: str = ""
+    transcript: str = ""
+    processed: bool = False
+    metadata: Union[ImageMetadata, VideoMetadata] = None
+
+    @validator("metadata", pre=True, always=True)
+    def set_metadata_content_type(cls, value, values):
+        if value is None:
+            content_type = values["content_type"].split("/")[0]
+            if content_type == "image":
+                return ImageMetadata(content_type="image")
+            elif content_type == "video":
+                return VideoMetadata(content_type="video")
+        return value
 
 
 @app.post("/video-request/{request_id}/media")
@@ -123,27 +161,19 @@ async def upload_media(request_id: str = Path(...), file: UploadFile = File(...)
     file_extension = os.path.splitext(file.filename)[1]
     filename_without_extension = os.path.splitext(file.filename)[0]
 
-    # Create the asset document
-    asset = {
-        "_id": asset_id,
-        "request_id": request_id,
-        "filename": file.filename,
-        "content_type": content_type,
-        "file_path": file_path,
-        "file_extension": file_extension,
-        "filename_without_extension": filename_without_extension,
-        "description": "",
-        "transcript": "",
-        "duration": -1,
-        "width": -1,
-        "height": -1,
-        "fps": -1,
-        "has_speech": -1,
-        "processed": False,
-    }
+    # Create the asset document using Pydantic models
+    asset = Asset(
+        id=asset_id,
+        request_id=request_id,
+        filename=file.filename,
+        content_type=content_type,
+        file_path=file_path,
+        file_extension=file_extension,
+        filename_without_extension=filename_without_extension
+    )
 
     # Save the asset in MongoDB
-    assets.insert_one(asset)
+    assets.insert_one(asset.model_dump())
 
     return {"asset_id": asset_id}
 
@@ -151,7 +181,7 @@ async def upload_media(request_id: str = Path(...), file: UploadFile = File(...)
 @app.post("/video-request/{request_id}/finalize")
 async def finalize_video_request(request_id: str = Path(...)):
     # Find the video request by its ID
-    video_request = video_requests.find_one({"_id": ObjectId(request_id)})
+    video_request = video_requests.find_one({"_id": request_id})
 
     if video_request:
         # Check if the video request status is "pending"

@@ -18,4 +18,4 @@ for file in *; do
     fi
 done
 
-curl -X POST -H "Content-Type: application/json" http://127.0.0.1:8000/video-request/$request_id/finalize-request
+curl -X POST -H "Content-Type: application/json" http://127.0.0.1:8000/video-request/$request_id/finalize
