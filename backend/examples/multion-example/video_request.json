@@ -1,0 +1,20 @@
+{
+    "lang": "english",
+    "topic": "multion was the co-sponsor of the Mistral AI hackathon in SF. We want to create a short video showing how awesome our company is and how the hackathon was well attended.",
+    "style": "event video",
+    "status": "pending",
+    "formats": [
+        {
+            "aspect_ratio": "16:9",
+            "length": 60
+        },
+        {
+            "aspect_ratio": "9:16",
+            "length": 30
+        },
+        {
+            "aspect_ratio": "1:1",
+            "length": 15
+        }
+    ]
+}

@@ -10,10 +10,13 @@
 - assets_converted
 - script_generation
 
+Today @TODO let's clear up the asset generation bit and figure out how the statuses work there for max parallelization
+The truth is that asset description and asset conversion may not have to wait for each other ... should I eke out every ounce? Yes because that's what an ur programmer would do
+Right now each video has one output aspect ratio
 
 ## Debugging the Queue
 
-Change MONGO_DB_NAME parameter to `cut-copy-test` instead of `cut-copy-prod` (PROD MONGO_DB_NAME)
+Change MONGO_DB_NAME parameter to `cut-copy-dev` instead of `cut-copy-prod` (PROD MONGO_DB_NAME)
 
 Try to pick a name that doesn't collide with the other devs.
 
@@ -25,20 +28,27 @@ I've done a smart thing in my branch ... you can just do
 
 So you can keep repeating steps in the queue while debugging
 
+On my local I've dumped a number of example states that I may just save now.
+
+first of all you can restore the following
+1. clean-dev
+1. fresh-upload
+1. assets-described @TODO or is it assets-converted or what?
+
 ## To Test - Multion Example
 1. Create Video Request
 ```
-video_id=$(curl -X POST -H "Content-Type: application/json" -d @video_request.json http://127.0.0.1:8000/video/ | jq -r '.video_id')
-echo $video_id
+request_id=$(curl -X POST -H "Content-Type: application/json" -d @video_request.json http://127.0.0.1:8000/video-request/ | jq -r '.request_id')
+echo $request_id
 ```
 2. Upload Media
 ```
-curl -X POST -H "Content-Type: multipart/form-data" -F "file=@logo.jpg" "http://127.0.0.1:8000/video/$video_id/media"
-curl -X POST -H "Content-Type: multipart/form-data" -F "file=@testimonial.mp4" "http://127.0.0.1:8000/video/$video_id/media"
+curl -X POST -H "Content-Type: multipart/form-data" -F "file=@logo.jpg" "http://127.0.0.1:8000/video-request/$request_id/media"
+curl -X POST -H "Content-Type: multipart/form-data" -F "file=@testimonial.mp4" "http://127.0.0.1:8000/video-request/$request_id/media"
 ```
 3. Finalize Request
 ```
-curl -X POST http://localhost:8000/video/$video_id/finalize-request
+curl -X POST http://localhost:8000/video-request/$request_id/finalize
 ```
 ## To Run on Dev
 
