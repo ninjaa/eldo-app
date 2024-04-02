@@ -7,7 +7,13 @@ import datetime
 from lib.models import Asset
 from utils.video.transcribe import extract_transcript_from_deepgram, is_transcript_usable, tidy_transcript
 from utils.video.video_helpers import extract_and_describe_frames, summarize_description, get_video_size
-from utils.image.image_helpers import detect_aspect_ratio, describe_image, detect_image_size_and_aspect_ratio, is_image_logo
+from utils.image.image_helpers import (
+    detect_aspect_ratio,
+    describe_image,
+    detect_image_size_and_aspect_ratio,
+    is_image_logo,
+    is_image_profile_pic
+)
 from moviepy.editor import VideoFileClip
 from lib.database import get_db_connection
 from lib.logger import setup_logger
@@ -84,8 +90,9 @@ async def describe_asset(asset_id: str):
                     asset.file_path, f"filename is ${asset.filename}")
 
                 is_logo_task = is_image_logo(asset.file_path)
+                is_profile_pic_task = is_image_profile_pic(asset.file_path)
 
-                description, is_logo = await asyncio.gather(description_task, is_logo_task)
+                description, is_logo, is_profile_pic = await asyncio.gather(description_task, is_logo_task, is_profile_pic_task)
 
                 image_width, image_height, aspect_ratio = detect_image_size_and_aspect_ratio(
                     asset.file_path)
@@ -99,6 +106,7 @@ async def describe_asset(asset_id: str):
                         "metadata.height": image_height,
                         "metadata.aspect_ratio": aspect_ratio,
                         "metadata.is_logo": is_logo,
+                        "metadata.is_profile_pic": is_profile_pic,
                         "status": "description_complete"
                     }}
                 )
