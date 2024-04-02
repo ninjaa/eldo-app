@@ -162,7 +162,8 @@ async def find_and_describe_assets(max_count=None, batch_size=1):
     while True:
         try:
             batch = []
-            for _ in range(batch_size):
+            remaining_count = max_count - processed_count if max_count is not None else batch_size
+            for _ in range(min(batch_size, remaining_count)):
                 asset = fetch_next_asset_for_description()
                 if 'asset_id' in asset:
                     batch.append(asset['asset_id'])
