@@ -43,6 +43,7 @@ class AssetStatus(str, Enum):
     UPLOADED = "uploaded"
     DESCRIPTION_STARTED = "description_started"
     DESCRIPTION_COMPLETE = "description_complete"
+    DESCRIPTION_FAILED = "description_failed"
     PROCESSING = "processing"
     COMPLETED = "completed"
     FAILED = "failed"
@@ -78,6 +79,7 @@ class Asset(BaseModel):
     processed: bool = False
     status: AssetStatus = AssetStatus.UPLOADED
     metadata: Union[ImageMetadata, VideoMetadata] = None
+    description_attempts: int = 0
 
     @validator("metadata", pre=True, always=True)
     def set_metadata_content_type(cls, value, values):
