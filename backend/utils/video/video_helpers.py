@@ -1,3 +1,5 @@
+from lib.logger import setup_logger
+import asyncio
 import cv2
 import openai
 from dotenv import load_dotenv
@@ -8,6 +10,7 @@ from utils.image.image_helpers import describe_image
 
 load_dotenv()
 
+logger = setup_logger(__name__)
 
 
 def get_video_size(video_path):
@@ -32,6 +35,9 @@ async def extract_and_describe_frames(video_path, interval=4):
     # Calculate the duration of the video in seconds
     duration = video.duration
 
+    # Initialize a list to store the description tasks
+    description_tasks = []
+
     # Initialize a list to store the descriptions
     descriptions = []
 
@@ -46,8 +52,19 @@ async def extract_and_describe_frames(video_path, interval=4):
             frame_path = os.path.join(temp_dir, f"frame_{t}.jpg")
             video.save_frame(frame_path, t=t)
 
+# Create a task for describing the frame
+            description_task = describe_image(frame_path)
+            description_tasks.append(description_task)
+
+            # If the number of tasks reaches 2 or it's the last frame, await the tasks
+            if len(description_tasks) == 2 or t + interval >= duration:
+                batch_descriptions = await asyncio.gather(*description_tasks)
+                # Extend the descriptions list
+                descriptions.extend(batch_descriptions)
+                description_tasks = []  # Reset the task list
+
             # Describe the frame using the describe_image function
-            description = describe_image(frame_path)
+            description = await describe_image(frame_path)
             descriptions.append(description)
 
     # Combine the descriptions into a single string
@@ -73,8 +90,6 @@ def summarize_description(long_description: str, transcript: str, duration: floa
     short_description:
     """
 
-    print(prompt)
-
     chat_completion = client.chat.completions.create(
         model="mistral-large-latest",
         messages=[
@@ -86,7 +101,6 @@ def summarize_description(long_description: str, transcript: str, duration: floa
     )
 
     answer = chat_completion.choices[0].message.content.strip()
-    print(f"summary description: {answer}")
     return answer
 
 

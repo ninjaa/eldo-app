@@ -2,6 +2,18 @@
 
 1. python cronjobs/
 
+## How I'm cleaning and going
+
+```
+python scripts/restore_mongo_db.py clean-dev
+Deleting all the folders in media
+
+Running the cron to describe assets
+python cronjobs/describe_assets.py
+
+and ofc uvicorn ya ya ya
+```
+
 ## Video Request Queue
 
 - pending

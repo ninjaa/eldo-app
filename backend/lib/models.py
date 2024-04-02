@@ -54,6 +54,7 @@ class ImageMetadata(BaseModel):
     height: int = -1
     aspect_ratio: str = ""
     content_type: Literal["image"]
+    is_logo: bool = False
 
 
 class VideoMetadata(BaseModel):
