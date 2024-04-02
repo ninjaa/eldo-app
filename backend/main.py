@@ -1,7 +1,6 @@
 
+from lib.models import VideoRequest, VideoStatus, Asset
 import os
-
-import logging
 
 from fastapi import FastAPI, File, UploadFile, Path, Response, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -13,9 +12,9 @@ from fastapi.middleware.cors import CORSMiddleware
 import magic
 
 from lib.database import get_db_connection
+from lib.logger import setup_logger
 
-client, db, videos, assets = get_db_connection()
-video_requests = db.get_collection("video_requests")
+client, db, video_requests, videos, assets = get_db_connection()
 
 load_dotenv()
 
@@ -33,11 +32,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-logger = logging.getLogger("uvicorn")
+logger = setup_logger("uvicorn")
 
 UPLOAD_DIRECTORY = "media"
-
-client, db, videos, assets = get_db_connection()
 
 origins = [
     "*"
@@ -50,8 +47,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-from lib.models import VideoRequest, VideoStatus, Asset
 
 
 @app.post("/video-request/")
@@ -113,10 +108,10 @@ async def finalize_video_request(request_id: str = Path(...)):
     if video_request:
         # Check if the video request status is "pending"
         if video_request["status"] == "pending":
-            # Update the video request status to "processing"
+            # Update the video request status to "requested"
             video_requests.update_one(
-                {"_id": ObjectId(request_id)},
-                {"$set": {"status": "processing"}}
+                {"_id": request_id},
+                {"$set": {"status": "requested"}}
             )
 
             # # Create video objects for each requested format

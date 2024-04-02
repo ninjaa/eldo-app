@@ -1,7 +1,18 @@
-from typing import List, Literal
+import datetime
+from typing import List, Literal, Optional
 from pydantic import BaseModel, Field, validator
 from typing import Union
 from enum import Enum
+
+class WarningMessage(BaseModel):
+    message: str
+    timestamp: Optional[str] = None
+
+class AppResponse(BaseModel):
+    status: str
+    data: Optional[dict] = None
+    error: Optional[dict] = None
+    warnings: Optional[List[WarningMessage]] = None
 
 
 class VideoFormat(BaseModel):
@@ -11,8 +22,9 @@ class VideoFormat(BaseModel):
 
 class VideoRequestStatus(str, Enum):
     PENDING = "pending"
-    PROCESSING = "processing"
-    REQUESTED = "requested"  # After assets are described and converted
+    REQUESTED = "requested"  # After the request is received
+    SPAWNING_STARTED = "spawning_started"  # After assets are described and converted
+    SPAWNING_COMPLETED = "spawning_completed"
 
 
 class VideoRequest(BaseModel):
@@ -82,6 +94,8 @@ class Asset(BaseModel):
     status: AssetStatus = AssetStatus.UPLOADED
     metadata: Union[ImageMetadata, VideoMetadata] = None
     description_attempts: int = 0
+    description_start_time: datetime.datetime = None
+    description_end_time: datetime.datetime = None
 
     @validator("metadata", pre=True, always=True)
     def set_metadata_content_type(cls, value, values):

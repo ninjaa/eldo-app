@@ -12,7 +12,8 @@ def get_db_connection():
     client = pymongo.MongoClient(MONGO_URL, tls=True)
     client.start_session()
     db = client.get_database(MONGO_DB_NAME)
+    video_requests = db.get_collection("video_requests")
     videos = db.get_collection("videos")
     assets = db.get_collection("assets")
 
-    return client, db, videos, assets
+    return client, db, video_requests, videos, assets

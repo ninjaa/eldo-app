@@ -1,10 +1,7 @@
-
-import logging
-import pdb
 import asyncio
 import pymongo
 import datetime
-from lib.models import Asset
+from lib.models import Asset, AppResponse
 from utils.video.transcribe import extract_transcript_from_deepgram, is_transcript_usable, tidy_transcript
 from utils.video.video_helpers import extract_and_describe_frames, summarize_description, get_video_size
 from utils.image.image_helpers import (
@@ -20,7 +17,7 @@ from lib.logger import setup_logger
 
 logger = setup_logger(__name__)
 
-_client, _db, _videos, assets = get_db_connection()
+_client, _db,  _video_requests, _videos, assets = get_db_connection()
 
 MAX_DESCRIPTION_ATTEMPTS = 3
 
@@ -107,13 +104,26 @@ async def describe_asset(asset_id: str):
                         "metadata.aspect_ratio": aspect_ratio,
                         "metadata.is_logo": is_logo,
                         "metadata.is_profile_pic": is_profile_pic,
+                        "description_end_time": datetime.datetime.now(),
                         "status": "description_complete"
                     }}
                 )
 
-            return {"asset_id": asset_id, "message": "Asset description updated successfully"}
+            return AppResponse(
+                status="success",
+                data={
+                    "asset_id": asset_id,
+                    "message": "Asset description updated successfully"
+                }
+            )
         else:
-            return {"asset_id": asset_id, "message": "Asset not found"}
+            return AppResponse(
+                status="error",
+                error={
+                    "asset_id": asset_id,
+                    "message": "Asset not found"
+                }
+            )
     except Exception as e:
         asset = assets.find_one({"_id": asset_id})
         if asset["description_attempts"] + 1 >= MAX_DESCRIPTION_ATTEMPTS:
@@ -121,14 +131,26 @@ async def describe_asset(asset_id: str):
                 {"_id": asset_id},
                 {"$set": {"status": "description_failed"}}
             )
-            return {"asset_id": asset_id, "message": f"Asset description failed after {MAX_DESCRIPTION_ATTEMPTS} attempts"}
+            return AppResponse(
+                status="error",
+                error={
+                    "asset_id": asset_id,
+                    "message": f"Asset description failed after {MAX_DESCRIPTION_ATTEMPTS} attempts"
+                }
+            )
         else:
             assets.update_one(
                 {"_id": asset_id},
                 {"$inc": {"description_attempts": 1},
                  "$set": {"status": "uploaded"}}
             )
-            return {"asset_id": asset_id, "message": f"An exception occurred: {e}"}
+            return AppResponse(
+                status="error",
+                error={
+                    "asset_id": asset_id,
+                    "message": f"An exception occurred: {e}"
+                }
+            )
 
 
 def fetch_next_asset_for_description():
@@ -139,8 +161,8 @@ def fetch_next_asset_for_description():
         },
         {
             "$set": {
-                "asset_processing_start_time": datetime.datetime.now(),
-                "asset_processing_end_time": None,
+                "description_start_time": datetime.datetime.now(),
+                "description_end_time": None,
                 "status": "description_started"
             }
         },
@@ -149,9 +171,15 @@ def fetch_next_asset_for_description():
     )
 
     if asset:
-        return {"asset_id": asset["_id"]}
+        return AppResponse(
+            status="success",
+            data={"asset_id": asset["_id"]}
+        )
     else:
-        return {"message": "No asset found"}
+        return AppResponse(
+            status="success",
+            data={"asset_id": None, "message": "No asset found"}
+        )
 
 
 NO_ASSETS_WAIT_SECONDS = 5
@@ -164,9 +192,10 @@ async def find_and_describe_assets(max_count=None, batch_size=1):
             batch = []
             remaining_count = max_count - processed_count if max_count is not None else batch_size
             for _ in range(min(batch_size, remaining_count)):
-                asset = fetch_next_asset_for_description()
-                if 'asset_id' in asset:
-                    batch.append(asset['asset_id'])
+                fetch_next_asset_result = fetch_next_asset_for_description()
+                asset_id = fetch_next_asset_result.data['asset_id']
+                if fetch_next_asset_result.status == "success" and asset_id:
+                    batch.append(asset_id)
                 else:
                     break
 
@@ -180,13 +209,13 @@ async def find_and_describe_assets(max_count=None, batch_size=1):
             results = await asyncio.gather(*[describe_asset(asset_id) for asset_id in batch])
 
             for result in results:
-                if "message" in result and "Asset description updated successfully" not in result["message"]:
-                    print(
-                        f"Failed to describe asset {result['asset_id']}: {result['message']}")
+                if result.status == "error":
+                    logger.error(
+                        f"Failed to describe asset {result.error['asset_id']}: {result.error['message']}")
 
             processed_count += len(batch)
             if max_count is not None and processed_count >= max_count:
                 break
 
         except Exception as e:
-            print(f"An exception occurred: {e}")
+            logger.error(f"An exception occurred: {e}")
