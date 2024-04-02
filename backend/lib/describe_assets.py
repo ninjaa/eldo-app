@@ -10,6 +10,9 @@ from utils.video.video_helpers import extract_and_describe_frames, summarize_des
 from utils.image.image_helpers import detect_aspect_ratio, describe_image, detect_image_size_and_aspect_ratio
 from moviepy.editor import VideoFileClip
 from lib.database import get_db_connection
+from lib.logger import setup_logger
+
+logger = setup_logger(__name__)
 
 _client, _db, _videos, assets = get_db_connection()
 
@@ -139,12 +142,6 @@ def fetch_next_asset_for_description():
 
 
 NO_ASSETS_WAIT_SECONDS = 5
-
-
-# Configure logging
-logging.basicConfig(level=logging.INFO,
-                    format='%(asctime)s - %(levelname)s - %(message)s')
-logger = logging.getLogger(__name__)
 
 
 async def find_and_describe_assets(max_count=None, batch_size=1):
