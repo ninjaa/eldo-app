@@ -25,7 +25,7 @@ def get_video_size(video_path):
     return int(width), int(height)
 
 
-def extract_and_describe_frames(video_path, interval=4):
+async def extract_and_describe_frames(video_path, interval=4):
     # Load the video clip
     video = VideoFileClip(video_path)
 

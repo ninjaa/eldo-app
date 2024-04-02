@@ -7,7 +7,7 @@ import openai
 load_dotenv()
 
 
-def extract_transcript_from_deepgram(video_file_path, content_type):
+async def extract_transcript_from_deepgram(video_file_path, content_type):
     api_key = os.getenv('DEEPGRAM_API_KEY')
     url = 'https://api.deepgram.com/v1/listen?smart_format=true&language=en&model=nova-2&diarize=true&punctuate=true&utterances=true'
     headers = {

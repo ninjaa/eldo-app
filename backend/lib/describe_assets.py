@@ -29,26 +29,29 @@ async def describe_asset(asset_id: str):
                 logger.info(
                     f"Describing video asset {asset_id} with filename {asset.filename}")
                 clip = VideoFileClip(asset.file_path)
-
-                print("fetching transcription from deepgram")
-                raw_transcript = extract_transcript_from_deepgram(
-                    asset.file_path, asset.content_type)
                 duration = clip.duration
-                long_description = extract_and_describe_frames(
+
+                transcript_task = extract_transcript_from_deepgram(
+                    asset.file_path, asset.content_type)
+                frames_task = extract_and_describe_frames(
                     asset.file_path, interval=4)
+
+                raw_transcript, long_description = await asyncio.gather(transcript_task, frames_task)
+
+                description = summarize_description(
+                    long_description, raw_transcript, duration)
+                if not description:  # b/c sometimes summary fails so just overwrite desc with raw_desc
+                    description = long_description
+
                 has_speech = len(raw_transcript) > 7 and is_transcript_usable(
                     raw_transcript)
+
                 if has_speech:
                     transcript = tidy_transcript(
                         description, raw_transcript, duration)
                 else:
                     raw_transcript = ""
                     transcript = ""
-
-                description = summarize_description(
-                    long_description, raw_transcript, duration)
-                if not description:  # b/c sometimes summary fails so just overwrite desc with raw_desc
-                    description = long_description
 
                 video_width, video_height = get_video_size(asset.file_path)
                 video_aspect_ratio = detect_aspect_ratio(
