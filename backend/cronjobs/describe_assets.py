@@ -1,6 +1,5 @@
 
 import asyncio
-from pprint import pprint
 import sys
 import os
 import argparse
