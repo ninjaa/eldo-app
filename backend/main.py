@@ -1,5 +1,8 @@
 
-from lib.models import Upload, VideoRequest
+from models.upload import Upload
+from models.video_request import VideoRequest
+from models.input_video_request import InputVideoRequest
+from models.video_request_format import VideoRequestFormat
 import os
 
 from fastapi import FastAPI, File, UploadFile, Path, Response, HTTPException
@@ -14,7 +17,10 @@ import magic
 from lib.database import get_db_connection
 from lib.logger import setup_logger
 
-client, db, video_requests_collection, videos_collection, uploads_collection, assets_collection = get_db_connection()
+client, db = get_db_connection()
+video_requests_collection = db.get_collection("video_requests")
+video_request_formats_collection = db.get_collection("video_request_formats")
+uploads_collection = db.get_collection("uploads")
 
 load_dotenv()
 
@@ -50,11 +56,25 @@ app.add_middleware(
 
 
 @app.post("/video-request/")
-def create_video_request(video_request: VideoRequest):
+def create_video_request(video_request: InputVideoRequest):
     request_id = str(ObjectId())
-    video_request_dict = video_request.model_dump()
+    video_request_dict = video_request.model_dump(exclude={"formats"})
     video_request_dict["_id"] = request_id
+    # Insert the video request into the video_requests collection
     video_requests_collection.insert_one(video_request_dict)
+
+    # Now, handle the formats
+    for format in video_request.formats:
+        format_dict = format.model_dump()
+        format_dict["request_id"] = request_id  # Link format to the request
+        format_id = str(ObjectId())
+        print(format_id)
+        video_request_format = VideoRequestFormat(
+            id=format_id, request_id=request_id, aspect_ratio=format.aspect_ratio, length=format.length)
+        format_dict = video_request_format.model_dump(by_alias=True)
+        print(format_dict)
+        video_request_formats_collection.insert_one(format_dict)
+
     return {"request_id": request_id}
 
 
@@ -111,6 +131,11 @@ async def finalize_video_request(request_id: str = Path(...)):
             # Update the video request status to "requested"
             video_requests_collection.update_one(
                 {"_id": request_id},
+                {"$set": {"status": "requested"}}
+            )
+            # Update all related video_request_formats' status from "pending" to "requested"
+            video_request_formats_collection.update_many(
+                {"request_id": request_id, "status": "pending"},
                 {"$set": {"status": "requested"}}
             )
 

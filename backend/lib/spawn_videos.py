@@ -3,14 +3,19 @@ import datetime
 import pymongo
 from lib.database import get_db_connection
 from lib.logger import setup_logger
-from lib.models import AppResponse, VideoRequest, Video
+from models.app_response import AppResponse
+from models.video_request import VideoRequest
+from models.video import Video
 
 logger = setup_logger(__name__)
 
 NO_VIDEO_REQUESTS_WAIT_SECONDS = 5
 MAX_SPAWNING_ATTEMPTS = 3
 
-_client, _db,  video_requests_collection, videos_collection, assets = get_db_connection()
+_client, db = get_db_connection()
+video_requests_collection = db.video_requests
+videos_collection = db.videos
+uploads_collection = db.uploads
 
 
 async def spawn_videos_from_video_requests(request_id: str, change_status=True, insert_videos=True):
@@ -94,7 +99,7 @@ async def spawn_videos_from_video_requests(request_id: str, change_status=True, 
 
 
 def fetch_next_video_request_for_video_spawning(change_status=True):
-    excluded_request_ids = assets.distinct(
+    excluded_request_ids = uploads_collection.distinct(
         "request_id",
         {
             "status": {"$nin": ["description_complete"]}
@@ -169,7 +174,7 @@ async def find_video_requests_and_spawn_videos(max_count=None, batch_size=1, cha
                         f"Failed to spawn videos for request {result.error['request_id']}: {result.error['message']}")
                 elif result.status == "success":
                     logger.info(
-                        f"Successfully spawned videos for request {result.data['request_id']}", extra={ "data": result.data })
+                        f"Successfully spawned videos for request {result.data['request_id']}", extra={"data": result.data})
 
             processed_count += len(batch)
             if max_count is not None and processed_count >= max_count:

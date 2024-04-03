@@ -3,57 +3,7 @@ from typing import List, Literal, Optional
 from pydantic import BaseModel, Field, validator
 from typing import Union
 from enum import Enum
-
-
-class WarningMessage(BaseModel):
-    message: str
-    timestamp: Optional[str] = None
-
-
-class AppResponse(BaseModel):
-    status: str
-    data: Optional[dict] = None
-    error: Optional[dict] = None
-    warnings: Optional[List[WarningMessage]] = None
-
-
-class VideoFormat(BaseModel):
-    aspect_ratio: str
-    length: int
-
-
-class VideoRequestStatus(str, Enum):
-    PENDING = "pending"
-    REQUESTED = "requested"  # After the request is received
-    # After assets are described and converted
-    SPAWNING_STARTED = "spawning_started"
-    SPAWNING_COMPLETED = "spawning_completed"
-
-
-class VideoRequest(BaseModel):
-    lang: str
-    topic: str
-    style: str
-    status: VideoRequestStatus = VideoRequestStatus.PENDING
-    formats: List[VideoFormat]
-    spawning_attempts: int = 0
-
-
-class VideoStatus(str, Enum):
-    SPAWNED = "spawned"
-    # PROCESSING = "processing"
-    # COMPLETED = "completed"
-
-
-class Video(BaseModel):
-    id: str = Field(alias="_id")
-    request_id: str
-    lang: str
-    topic: str
-    style: str
-    status: VideoStatus = VideoStatus.SPAWNED
-    aspect_ratio: str
-    length: int
+from bson.objectid import ObjectId
 
 
 class UploadStatus(str, Enum):
@@ -86,7 +36,7 @@ class VideoMetadata(BaseModel):
 
 
 class Upload(BaseModel):
-    id: str = Field(alias="_id")
+    id: str = Field(alias="_id", default_factory=lambda: str(ObjectId()))
     request_id: str
     filename: str
     content_type: str

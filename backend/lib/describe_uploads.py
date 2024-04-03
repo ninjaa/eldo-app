@@ -1,7 +1,8 @@
 import asyncio
 import pymongo
 import datetime
-from lib.models import AppResponse, Upload
+from models.app_response import AppResponse
+from models.upload import Upload
 from utils.video.transcribe import extract_transcript_from_deepgram, is_transcript_usable, tidy_transcript
 from utils.video.video_helpers import extract_and_describe_frames, summarize_description, get_video_size
 from utils.image.image_helpers import (
@@ -17,7 +18,8 @@ from lib.logger import setup_logger
 
 logger = setup_logger(__name__)
 
-_client, _db,  _video_requests, _videos, uploads_collection, _assets_collection = get_db_connection()
+_client, db = get_db_connection()
+uploads_collection = db.uploads
 
 MAX_DESCRIPTION_ATTEMPTS = 3
 NO_UPLOADS_WAIT_SECONDS = 5
