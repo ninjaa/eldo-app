@@ -43,6 +43,7 @@ class VideoStatus(str, Enum):
 
 
 class Video(BaseModel):
+    id: str = Field(alias="_id")
     request_id: str
     lang: str
     topic: str
