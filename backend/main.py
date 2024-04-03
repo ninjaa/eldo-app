@@ -1,5 +1,5 @@
 
-from lib.models import VideoRequest, VideoStatus, Asset
+from lib.models import Upload, VideoRequest
 import os
 
 from fastapi import FastAPI, File, UploadFile, Path, Response, HTTPException
@@ -14,7 +14,7 @@ import magic
 from lib.database import get_db_connection
 from lib.logger import setup_logger
 
-client, db, video_requests_collection, videos_collection, assets_collection = get_db_connection()
+client, db, video_requests_collection, videos_collection, uploads_collection, assets_collection = get_db_connection()
 
 load_dotenv()
 
@@ -60,14 +60,14 @@ def create_video_request(video_request: VideoRequest):
 
 @app.post("/video-request/{request_id}/media")
 async def upload_media(request_id: str = Path(...), file: UploadFile = File(...)):
-    # Check if an asset with the same filename already exists for the video request
-    existing_asset = assets_collection.find_one(
+    # Check if an upload with the same filename already exists for the video request
+    existing_upload = uploads_collection.find_one(
         {"request_id": request_id, "filename": file.filename})
-    if existing_asset:
+    if existing_upload:
         return Response(status_code=204)
 
     # Generate a new asset ID
-    asset_id = str(ObjectId())
+    upload_id = str(ObjectId())
 
     # Create the directory for the video request if it doesn't exist
     request_directory = os.path.join(UPLOAD_DIRECTORY, request_id, "uploads")
@@ -84,8 +84,8 @@ async def upload_media(request_id: str = Path(...), file: UploadFile = File(...)
     filename_without_extension = os.path.splitext(file.filename)[0]
 
     # Create the asset document using Pydantic models
-    asset = Asset(
-        _id=asset_id,
+    upload = Upload(
+        _id=upload_id,
         request_id=request_id,
         filename=file.filename,
         content_type=content_type,
@@ -95,9 +95,9 @@ async def upload_media(request_id: str = Path(...), file: UploadFile = File(...)
     )
 
     # Save the asset in MongoDB
-    assets_collection.insert_one(asset.model_dump(by_alias=True))
+    uploads_collection.insert_one(upload.model_dump(by_alias=True))
 
-    return {"asset_id": asset_id}
+    return {"upload_id": upload_id}
 
 
 @app.post("/video-request/{request_id}/finalize")
@@ -113,19 +113,6 @@ async def finalize_video_request(request_id: str = Path(...)):
                 {"_id": request_id},
                 {"$set": {"status": "requested"}}
             )
-
-            # # Create video objects for each requested format
-            # for format in video_request["formats"]:
-            #     video = {
-            #         "request_id": request_id,
-            #         "lang": video_request["lang"],
-            #         "topic": video_request["topic"],
-            #         "style": video_request["style"],
-            #         "status": "pending",
-            #         "aspect_ratio": format["aspect_ratio"],
-            #         "length": format["length"]
-            #     }
-            #     videos.insert_one(video)
 
             return {"message": "Video request finalized successfully"}
         else:

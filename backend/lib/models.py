@@ -4,9 +4,11 @@ from pydantic import BaseModel, Field, validator
 from typing import Union
 from enum import Enum
 
+
 class WarningMessage(BaseModel):
     message: str
     timestamp: Optional[str] = None
+
 
 class AppResponse(BaseModel):
     status: str
@@ -23,7 +25,8 @@ class VideoFormat(BaseModel):
 class VideoRequestStatus(str, Enum):
     PENDING = "pending"
     REQUESTED = "requested"  # After the request is received
-    SPAWNING_STARTED = "spawning_started"  # After assets are described and converted
+    # After assets are described and converted
+    SPAWNING_STARTED = "spawning_started"
     SPAWNING_COMPLETED = "spawning_completed"
 
 
@@ -53,7 +56,7 @@ class Video(BaseModel):
     length: int
 
 
-class AssetStatus(str, Enum):
+class UploadStatus(str, Enum):
     UPLOADED = "uploaded"
     DESCRIPTION_STARTED = "description_started"
     DESCRIPTION_COMPLETE = "description_complete"
@@ -82,7 +85,7 @@ class VideoMetadata(BaseModel):
     content_type: Literal["video"]
 
 
-class Asset(BaseModel):
+class Upload(BaseModel):
     id: str = Field(alias="_id")
     request_id: str
     filename: str
@@ -93,7 +96,7 @@ class Asset(BaseModel):
     description: str = ""
     transcript: str = ""
     processed: bool = False
-    status: AssetStatus = AssetStatus.UPLOADED
+    status: UploadStatus = UploadStatus.UPLOADED
     metadata: Union[ImageMetadata, VideoMetadata] = None
     description_attempts: int = 0
     description_start_time: Optional[datetime.datetime] = None
