@@ -67,6 +67,10 @@ async def describe_upload(upload_id: str):
                     video_width, video_height)
                 video_fps = clip.fps
 
+                # Calculate description duration
+                description_end_time = datetime.datetime.now()
+                description_duration = (description_end_time - upload.description_start_time).total_seconds()
+                
                 # Update the asset description
                 uploads_collection.update_one(
                     {"_id": upload_id},
@@ -79,7 +83,8 @@ async def describe_upload(upload_id: str):
                         "metadata.height": video_height,
                         "metadata.aspect_ratio": video_aspect_ratio,
                         "metadata.fps": video_fps,
-                        "description_end_time": datetime.datetime.now(),
+                        "description_end_time": description_end_time,
+                        "description_duration": description_duration,
                         "status": "description_complete"
                     }}
                 )
@@ -98,6 +103,10 @@ async def describe_upload(upload_id: str):
                 image_width, image_height, aspect_ratio = detect_image_size_and_aspect_ratio(
                     upload.file_path)
 
+                # Calculate description duration
+                description_end_time = datetime.datetime.now()
+                description_duration = (description_end_time - upload.description_start_time).total_seconds()
+                
                 # Update the asset description
                 uploads_collection.update_one(
                     {"_id": upload_id},
@@ -108,7 +117,8 @@ async def describe_upload(upload_id: str):
                         "metadata.aspect_ratio": aspect_ratio,
                         "metadata.is_logo": is_logo,
                         "metadata.is_profile_pic": is_profile_pic,
-                        "description_end_time": datetime.datetime.now(),
+                        "description_end_time": description_end_time,
+                        "description_duration": description_duration,
                         "status": "description_complete"
                     }}
                 )

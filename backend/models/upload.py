@@ -51,6 +51,7 @@ class Upload(BaseModel):
     description_attempts: int = 0
     description_start_time: Optional[datetime.datetime] = None
     description_end_time: Optional[datetime.datetime] = None
+    description_duration: Optional[float] = None
 
     @validator("metadata", pre=True, always=True)
     def set_metadata_content_type(cls, value, values):
