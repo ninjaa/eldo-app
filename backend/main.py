@@ -14,7 +14,7 @@ import magic
 from lib.database import get_db_connection
 from lib.logger import setup_logger
 
-client, db, video_requests, videos, assets = get_db_connection()
+client, db, video_requests_collection, videos_collection, assets_collection = get_db_connection()
 
 load_dotenv()
 
@@ -54,14 +54,14 @@ def create_video_request(video_request: VideoRequest):
     request_id = str(ObjectId())
     video_request_dict = video_request.model_dump()
     video_request_dict["_id"] = request_id
-    video_requests.insert_one(video_request_dict)
+    video_requests_collection.insert_one(video_request_dict)
     return {"request_id": request_id}
 
 
 @app.post("/video-request/{request_id}/media")
 async def upload_media(request_id: str = Path(...), file: UploadFile = File(...)):
     # Check if an asset with the same filename already exists for the video request
-    existing_asset = assets.find_one(
+    existing_asset = assets_collection.find_one(
         {"request_id": request_id, "filename": file.filename})
     if existing_asset:
         return Response(status_code=204)
@@ -95,7 +95,7 @@ async def upload_media(request_id: str = Path(...), file: UploadFile = File(...)
     )
 
     # Save the asset in MongoDB
-    assets.insert_one(asset.model_dump(by_alias=True))
+    assets_collection.insert_one(asset.model_dump(by_alias=True))
 
     return {"asset_id": asset_id}
 
@@ -103,13 +103,13 @@ async def upload_media(request_id: str = Path(...), file: UploadFile = File(...)
 @app.post("/video-request/{request_id}/finalize")
 async def finalize_video_request(request_id: str = Path(...)):
     # Find the video request by its ID
-    video_request = video_requests.find_one({"_id": request_id})
+    video_request = video_requests_collection.find_one({"_id": request_id})
 
     if video_request:
         # Check if the video request status is "pending"
         if video_request["status"] == "pending":
             # Update the video request status to "requested"
-            video_requests.update_one(
+            video_requests_collection.update_one(
                 {"_id": request_id},
                 {"$set": {"status": "requested"}}
             )

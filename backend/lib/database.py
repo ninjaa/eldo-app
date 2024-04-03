@@ -13,7 +13,7 @@ def get_db_connection():
     client.start_session()
     db = client.get_database(MONGO_DB_NAME)
     video_requests = db.get_collection("video_requests")
-    videos = db.get_collection("videos")
-    assets = db.get_collection("assets")
+    videos_collection = db.get_collection("videos")
+    assets_collection = db.get_collection("assets")
 
-    return client, db, video_requests, videos, assets
+    return client, db, video_requests, videos_collection, assets_collection

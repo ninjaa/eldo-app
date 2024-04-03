@@ -17,7 +17,7 @@ from lib.logger import setup_logger
 
 logger = setup_logger(__name__)
 
-_client, _db,  _video_requests, _videos, assets = get_db_connection()
+_client, _db,  _video_requests, _videos, assets_collection = get_db_connection()
 
 MAX_DESCRIPTION_ATTEMPTS = 3
 
@@ -25,7 +25,7 @@ MAX_DESCRIPTION_ATTEMPTS = 3
 async def describe_asset(asset_id: str):
     try:
         # Find the asset by its ID
-        assets_result = assets.find_one({"_id": asset_id})
+        assets_result = assets_collection.find_one({"_id": asset_id})
         # breakpoint()
         asset = Asset(**assets_result)
 
@@ -65,7 +65,7 @@ async def describe_asset(asset_id: str):
                 video_fps = clip.fps
 
                 # Update the asset description
-                assets.update_one(
+                assets_collection.update_one(
                     {"_id": asset_id},
                     {"$set": {
                         "description": description,
@@ -95,7 +95,7 @@ async def describe_asset(asset_id: str):
                     asset.file_path)
 
                 # Update the asset description
-                assets.update_one(
+                assets_collection.update_one(
                     {"_id": asset_id},
                     {"$set": {
                         "description": description,
@@ -125,9 +125,9 @@ async def describe_asset(asset_id: str):
                 }
             )
     except Exception as e:
-        asset = assets.find_one({"_id": asset_id})
+        asset = assets_collection.find_one({"_id": asset_id})
         if asset["description_attempts"] + 1 >= MAX_DESCRIPTION_ATTEMPTS:
-            assets.update_one(
+            assets_collection.update_one(
                 {"_id": asset_id},
                 {"$set": {"status": "description_failed"}}
             )
@@ -139,7 +139,7 @@ async def describe_asset(asset_id: str):
                 }
             )
         else:
-            assets.update_one(
+            assets_collection.update_one(
                 {"_id": asset_id},
                 {"$inc": {"description_attempts": 1},
                  "$set": {"status": "uploaded"}}
@@ -154,7 +154,7 @@ async def describe_asset(asset_id: str):
 
 
 def fetch_next_asset_for_description():
-    asset = assets.find_one_and_update(
+    asset = assets_collection.find_one_and_update(
         {
             "status": "uploaded",
             "description_attempts": {"$lt": MAX_DESCRIPTION_ATTEMPTS},

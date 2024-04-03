@@ -33,10 +33,11 @@ class VideoRequest(BaseModel):
     style: str
     status: VideoRequestStatus = VideoRequestStatus.PENDING
     formats: List[VideoFormat]
+    spawning_attempts: int = 0
 
 
 class VideoStatus(str, Enum):
-    REQUESTED = "requested"
+    SPAWNED = "spawned"
     # PROCESSING = "processing"
     # COMPLETED = "completed"
 
@@ -46,7 +47,7 @@ class Video(BaseModel):
     lang: str
     topic: str
     style: str
-    status: VideoStatus = VideoStatus.REQUESTED
+    status: VideoStatus = VideoStatus.SPAWNED
     aspect_ratio: str
     length: int
 
@@ -94,8 +95,8 @@ class Asset(BaseModel):
     status: AssetStatus = AssetStatus.UPLOADED
     metadata: Union[ImageMetadata, VideoMetadata] = None
     description_attempts: int = 0
-    description_start_time: datetime.datetime = None
-    description_end_time: datetime.datetime = None
+    description_start_time: Optional[datetime.datetime] = None
+    description_end_time: Optional[datetime.datetime] = None
 
     @validator("metadata", pre=True, always=True)
     def set_metadata_content_type(cls, value, values):
