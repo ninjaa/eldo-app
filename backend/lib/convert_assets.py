@@ -115,7 +115,7 @@ async def convert_uploads_to_aspect_ratio(aspect_ratio_id):
                     "conversion_end_time": conversion_end_time,
                     "conversion_duration": conversion_duration,
                 }
-                import pdb; pdb.set_trace()
+
                 asset = Asset(**asset_dict)
                 assets_collection.insert_one(asset.model_dump(by_alias=True))
         else:
@@ -208,7 +208,7 @@ async def find_and_convert_aspect_ratios(max_count=None, batch_size=1):
             remaining_count = max_count - processed_count if max_count is not None else batch_size
             for _ in range(min(batch_size, remaining_count)):
                 fetch_next_aspect_ratio_result = fetch_next_aspect_ratio_for_asset_conversion()
-                if fetch_next_aspect_ratio_result.status == "success":
+                if fetch_next_aspect_ratio_result.status == "success" and fetch_next_aspect_ratio_result.data["aspect_ratio_id"]:
                     batch.append(
                         fetch_next_aspect_ratio_result.data["aspect_ratio_id"])
                 else:
@@ -225,6 +225,7 @@ async def find_and_convert_aspect_ratios(max_count=None, batch_size=1):
 
             for result in results:
                 if result.status == "error":
+                    logger.error(result)
                     logger.error(
                         f"Failed to describe upload {result.error['upload_id']}: {result.error['message']}")
 
