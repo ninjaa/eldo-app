@@ -13,7 +13,7 @@ def detect_aspect_ratio(image_width, image_height):
     gcd = math.gcd(image_width, image_height)
 
     # Calculate the aspect ratio
-    aspect_ratio = f"{image_width // gcd}:{image_height // gcd}"
+    aspect_ratio = f"{image_width // gcd}x{image_height // gcd}"
 
     return aspect_ratio
 

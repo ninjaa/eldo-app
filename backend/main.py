@@ -2,6 +2,7 @@
 from models.upload import Upload
 from models.video_request import VideoRequest
 from models.input_video_request import InputVideoRequest
+from models.video_request_aspect_ratio import VideoRequestAspectRatio
 from models.video_request_format import VideoRequestFormat
 import os
 
@@ -20,6 +21,8 @@ from lib.logger import setup_logger
 client, db = get_db_connection()
 video_requests_collection = db.get_collection("video_requests")
 video_request_formats_collection = db.get_collection("video_request_formats")
+video_request_aspect_ratios_collection = db.get_collection(
+    "video_request_aspect_ratios")
 uploads_collection = db.get_collection("uploads")
 
 load_dotenv()
@@ -40,7 +43,7 @@ app.add_middleware(
 
 logger = setup_logger("uvicorn")
 
-UPLOAD_DIRECTORY = "media"
+from constants import UPLOAD_DIRECTORY
 
 origins = [
     "*"
@@ -69,10 +72,30 @@ def create_video_request(video_request: InputVideoRequest):
         format_dict["request_id"] = request_id  # Link format to the request
         format_id = str(ObjectId())
         print(format_id)
+        video_request_aspect_ratio_result = video_request_aspect_ratios_collection.find_one(
+            {"aspect_ratio": format.aspect_ratio}
+        )
+
+        if not video_request_aspect_ratio_result:
+            aspect_ratio_id = str(ObjectId())
+            video_request_aspect_ratio = VideoRequestAspectRatio(
+                id=aspect_ratio_id,
+                request_id=request_id,
+                aspect_ratio=format.aspect_ratio,
+                status="pending"
+            )
+            aspect_ratio_dict = video_request_aspect_ratio.model_dump(
+                by_alias=True)
+            video_request_aspect_ratios_collection.insert_one(
+                aspect_ratio_dict)
+
         video_request_format = VideoRequestFormat(
-            id=format_id, request_id=request_id, aspect_ratio=format.aspect_ratio, length=format.length)
+            id=format_id,
+            request_id=request_id,
+            aspect_ratio=format.aspect_ratio,
+            length=format.length
+        )
         format_dict = video_request_format.model_dump(by_alias=True)
-        print(format_dict)
         video_request_formats_collection.insert_one(format_dict)
 
     return {"request_id": request_id}
