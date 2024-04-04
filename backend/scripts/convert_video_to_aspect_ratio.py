@@ -20,9 +20,9 @@ if __name__ == "__main__":
                         help="Width of the desired aspect ratio.")
     parser.add_argument("aspect_ratio_height", type=int,
                         help="Height of the desired aspect ratio.")
-    parser.add_argument("--crop_type", choices=["contain", "center"],
+    parser.add_argument("--crop-type", choices=["contain", "center"],
                         default="contain", help="Crop type: 'contain' (default) or 'center'.")
-    parser.add_argument("--background_color", nargs=3, type=int,
+    parser.add_argument("--background-color", nargs=3, type=int,
                         default=[0, 0, 0], help="Background color in RGB format (default: black).")
     args = parser.parse_args()
 
