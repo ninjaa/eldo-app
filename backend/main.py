@@ -1,4 +1,5 @@
 
+from constants import UPLOAD_DIRECTORY
 from models.upload import Upload
 from models.video_request import VideoRequest
 from models.input_video_request import InputVideoRequest
@@ -43,7 +44,6 @@ app.add_middleware(
 
 logger = setup_logger("uvicorn")
 
-from constants import UPLOAD_DIRECTORY
 
 origins = [
     "*"
@@ -73,7 +73,7 @@ def create_video_request(video_request: InputVideoRequest):
         format_id = str(ObjectId())
         print(format_id)
         video_request_aspect_ratio_result = video_request_aspect_ratios_collection.find_one(
-            {"aspect_ratio": format.aspect_ratio}
+            {"aspect_ratio": format.aspect_ratio.replace(":", "x")}
         )
 
         if not video_request_aspect_ratio_result:
@@ -158,6 +158,11 @@ async def finalize_video_request(request_id: str = Path(...)):
             )
             # Update all related video_request_formats' status from "pending" to "requested"
             video_request_formats_collection.update_many(
+                {"request_id": request_id, "status": "pending"},
+                {"$set": {"status": "requested"}}
+            )
+            # Update all related video_request_aspect_ratios' status from "pending" to "requested"
+            video_request_aspect_ratios_collection.update_many(
                 {"request_id": request_id, "status": "pending"},
                 {"$set": {"status": "requested"}}
             )

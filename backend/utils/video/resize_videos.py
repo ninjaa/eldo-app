@@ -9,12 +9,15 @@ import shutil
 def convert_video_to_aspect_ratio(input_path, output_path, aspect_ratio_width, aspect_ratio_height, crop_type="contain", background_color=(0, 0, 0)):
 
     # Get the video size using the get_video_size function
-    video_size = get_video_size(input_path)
-    video_width = video_size['width']
-    video_height = video_size['height']
+    video_width, video_height = get_video_size(input_path)
 
     # Load the video clip
     video = VideoFileClip(input_path)
+    
+    # Manually set the video width and height by resizing
+    # Replace (new_width, new_height) with your desired dimensions
+    video = video.resize(newsize=(video_width, video_height))
+
 
     # Calculate the current aspect ratio
     current_aspect_ratio = video_width / video_height
