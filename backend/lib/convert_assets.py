@@ -118,6 +118,28 @@ async def convert_uploads_to_aspect_ratio(aspect_ratio_id):
 
                 asset = Asset(**asset_dict)
                 assets_collection.insert_one(asset.model_dump(by_alias=True))
+                
+            conversion_start_time = aspect_ratio_result['conversion_start_time']
+            conversion_end_time = datetime.datetime.now()
+            conversion_duration = (
+                conversion_end_time - conversion_start_time).total_seconds()
+            video_request_aspect_ratios_collection.update_one(
+                {"_id": aspect_ratio_id},
+                {"$inc": {"conversion_attempts": 1},
+                 "$set": {
+                    "status": "converted",
+                    "conversion_end_time": conversion_end_time,
+                    "conversion_duration": conversion_duration,
+                }}
+            )
+
+            return AppResponse(
+                status="success",
+                data={
+                    "aspect_ratio_id": aspect_ratio_id,
+                    "message": f"Asset conversion completed for aspect ratio {aspect_ratio.aspect_ratio} for request {aspect_ratio.request_id}"
+                }
+            )
         else:
             return AppResponse(
                 status="error",
@@ -126,7 +148,7 @@ async def convert_uploads_to_aspect_ratio(aspect_ratio_id):
                     "message": f"Video Request Aspect Ratio with id {aspect_ratio_id} not found!"
                 }
             )
-        uploads = uploads_collection.find({"request_id": aspect_ratio_id})
+
     except Exception as e:
         if aspect_ratio_result:
             next_status = "requested"
