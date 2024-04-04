@@ -1,9 +1,12 @@
-from PIL import Image
+from PIL import Image, ImageOps
 import shutil
 
 def convert_image_to_aspect_ratio(input_path, output_path, aspect_ratio_width, aspect_ratio_height, crop_type="contain", background_color=(0, 0, 0)):
     # Load the image
     image = Image.open(input_path)
+    
+    # Rotate the image based on the EXIF orientation tag
+    image = ImageOps.exif_transpose(image)
 
     # Get the current image dimensions
     image_width, image_height = image.size
