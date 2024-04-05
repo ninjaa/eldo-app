@@ -1,38 +1,114 @@
 from bson.objectid import ObjectId
 import asyncio
 import datetime
+import math
+import openai
+import os
 import pymongo
+from dotenv import load_dotenv
+from typing import List
 from lib.database import get_db_connection
 from lib.logger import setup_logger
+from models.asset import Asset
 from models.app_response import AppResponse
-from models.video_request import VideoRequest
-from models.video_request_format import VideoRequestFormat
 from models.video import Video
+from utils.json_helpers import clean_json, extract_json
 
+load_dotenv()
 logger = setup_logger(__name__)
 
 NO_VIDEO_SCRIPTS_WAIT_SECONDS = 5
 MAX_GENERATION_ATTEMPTS = 3
 
 _client, db = get_db_connection()
-video_requests_collection = db.video_requests
 videos_collection = db.videos
-uploads_collection = db.uploads
 assets_collection = db.assets
-video_request_aspect_ratios_collection = db.video_request_aspect_ratios
-video_request_formats_collection = db.video_request_formats
+
+
+def generate_title_and_script(video: Video, assets: List[Asset]):
+    video_json = video.model_dump_json(indent=2)
+    assets_json = [asset.model_dump_json(indent=2) for asset in assets]
+
+    api_token = os.getenv("MISTRAL_API_KEY")
+    client = openai.OpenAI(
+        base_url="https://api.mistral.ai/v1",
+        api_key=api_token
+    )
+
+    number_of_words = math.ceil(2.5 * video.length)
+
+    if video.aspect_ratio == "16x9":
+        video_format = "YouTube"
+    elif video.aspect_ratio == "1x1":
+        video_format = "Instagram"
+    elif video.aspect_ratio == "9x16":
+        video_format = "TikTok"
+    else:
+        video_format = ""
+
+    prompt = f"""
+    You're an expert AI video editor and you're tasked with generating a title and script for a social media video for a big brand.
+    
+    Please refer to what the company does and also to the setting. 
+    
+    Please be very explicit about the city and the landmarks and other distinctive features as we will generate content and search stock databases using keywords mined from the script.
+    
+    Please include Narrator (Voiceover) as well as Cut to: in the script. If there's testimonials or any other videos with speech in the assets, you can Cut to: those as well, refer to the filename or type.
+    
+    Please keep the script to under {number_of_words} words this is for a {video.length} second {video_format} {video.style}.
+    
+    The spec for the video to edit is as follows:
+    {video_json}
+
+    The assets to use are as follows:
+    {assets_json}
+    
+    Please provide your title and script as JSON in the following format
+    
+        {{ 
+        "title" : "some title for a compelling video", 
+        "script" : "some script for a compelling video"
+        }}
+    
+    """
+
+    print(prompt)
+
+    chat_completion = client.chat.completions.create(
+        model="mistral-large-latest",
+        messages=[
+            {"role": "system", "content": "You are a video editor screenwriting and then cutting a TV news / social media video."},
+            {"role": "user", "content": prompt},
+        ],
+        temperature=0,
+        max_tokens=1000
+    )
+
+    answer = chat_completion.choices[0].message.content.strip()
+    print(f"what we got from generate_title_and_script: {answer}")
+    return answer
 
 
 async def generate_script(video_id, change_status=True):
     video = Video(**videos_collection.find_one({"_id": video_id}))
-    assets = list(assets_collection.find(
+    asset_dicts = list(assets_collection.find(
         {
             "status": "converted",
             "request_id": video.request_id,
             "metadata.aspect_ratio": video.aspect_ratio
         }))
+    assets = [Asset(**asset_dict) for asset_dict in asset_dicts]
     print(assets)
     print(video)
+    if video and len(assets) > 0:
+        try:
+            text = generate_title_and_script(video, assets)
+        except Exception as e:
+            logger.error(f"Error generating script for video {video_id}: {e}")
+            return AppResponse(
+                status="error",
+                message=f"Error generating script for video {video_id}: {e}"
+            )
 
 
 def fetch_next_video_for_script_generation(change_status=True):
