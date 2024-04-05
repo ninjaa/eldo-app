@@ -1,13 +1,15 @@
 from pydantic import BaseModel, Field
 from enum import Enum
 from bson.objectid import ObjectId
-
+from typing import Optional
+import datetime
 
 class VideoRequestFormatStatus(str, Enum):
     PENDING = "pending"
     REQUESTED = "requested"
     CONVERTED = "converted"
-    SPAWNED = "success"
+    SPAWNING_STARTED = "spawning_started"
+    SPAWNING_COMPLETE = "spawning_started"
     GENERATED = "generated"
 
 
@@ -17,3 +19,7 @@ class VideoRequestFormat(BaseModel):
     aspect_ratio: str
     length: int
     status: VideoRequestFormatStatus = VideoRequestFormatStatus.PENDING
+    spawning_attempts: int = 0
+    spawning_start_time: Optional[datetime.datetime] = None
+    spawning_end_time: Optional[datetime.datetime] = None
+    spawning_duration: Optional[float] = None
