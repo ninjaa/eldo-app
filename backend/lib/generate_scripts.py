@@ -86,7 +86,10 @@ def generate_title_and_script(video: Video, assets: List[Asset]):
 
     answer = chat_completion.choices[0].message.content.strip()
     print(f"what we got from generate_title_and_script: {answer}")
-    return answer
+
+    title_and_script = extract_json(answer)
+
+    return title_and_script["title"], title_and_script["script"]
 
 
 async def generate_script(video_id, change_status=True):
@@ -102,7 +105,25 @@ async def generate_script(video_id, change_status=True):
     print(video)
     if video and len(assets) > 0:
         try:
-            text = generate_title_and_script(video, assets)
+            title, script = generate_title_and_script(video, assets)
+            script_generation_processing_end_time = datetime.datetime.now()
+            script_generation_processing_duration = (
+                script_generation_processing_end_time - video.script_generation_processing_start_time).total_seconds()
+            if change_status:
+                videos_collection.update_one(
+                    {"_id": video.id},
+                    {
+                        "$set": {
+                            "title": title,
+                            "script": script,
+                            "script_generated": True,
+                            "title_generated": True,
+                            "status": "script_generation_complete",
+                            "script_generation_processing_duration": script_generation_processing_duration,
+                            "script_generation_processing_end_time": script_generation_processing_end_time
+                        }
+                    }
+                )
         except Exception as e:
             logger.error(f"Error generating script for video {video_id}: {e}")
             return AppResponse(
@@ -128,7 +149,7 @@ def fetch_next_video_for_script_generation(change_status=True):
                     "$set": {
                         "script_generation_processing_start_time": datetime.datetime.now(),
                         "script_generation_processing_end_time": None,
-                        "status": "spawning_started"
+                        "status": "script_generation_started"
                     }
                 }
             )

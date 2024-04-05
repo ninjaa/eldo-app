@@ -4,6 +4,7 @@ from bson.objectid import ObjectId
 from typing import Optional
 import datetime
 
+
 class VideoStatus(str, Enum):
     REQUESTED = "requested"
     SCRIPT_GENERATION_STARTED = "script_generation_started"
@@ -23,6 +24,8 @@ class Video(BaseModel):
     length: int
     title: Optional[str] = None
     script: Optional[str] = None
+    script_generated: Optional[bool] = False
+    title_generated: Optional[bool] = False
     script_generation_processing_start_time: Optional[datetime.datetime] = None
     script_generation_processing_end_time: Optional[datetime.datetime] = None
     script_generation_processing_duration: Optional[float] = None
