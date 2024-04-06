@@ -15,6 +15,7 @@ from utils.image.image_helpers import (
 from moviepy.editor import VideoFileClip
 from lib.database import get_db_connection
 from lib.logger import setup_logger
+from utils.exception_helpers import log_exception
 
 logger = setup_logger(__name__)
 
@@ -232,4 +233,4 @@ async def find_and_describe_uploads(max_count=None, batch_size=1):
                 break
 
         except Exception as e:
-            logger.error(f"An exception occurred: {e}")
+            log_exception(logger, e)

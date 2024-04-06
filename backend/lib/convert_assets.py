@@ -21,6 +21,7 @@ from utils.image.resize_images import convert_image_to_aspect_ratio
 from utils.video.resize_videos import convert_video_to_aspect_ratio
 from utils.video.video_helpers import get_video_size
 from bson.objectid import ObjectId
+from utils.exception_helpers import log_exception
 
 logger = setup_logger(__name__)
 _client, db = get_db_connection()
@@ -230,16 +231,16 @@ async def find_and_convert_aspect_ratios(max_count=None, batch_size=1):
             remaining_count = max_count - processed_count if max_count is not None else batch_size
             for _ in range(min(batch_size, remaining_count)):
                 fetch_next_aspect_ratio_result = fetch_next_aspect_ratio_for_asset_conversion()
+                aspect_ratio_id = fetch_next_aspect_ratio_result.data["aspect_ratio_id"]
                 if fetch_next_aspect_ratio_result.status == "success" and fetch_next_aspect_ratio_result.data["aspect_ratio_id"]:
-                    batch.append(
-                        fetch_next_aspect_ratio_result.data["aspect_ratio_id"])
+                    batch.append(aspect_ratio_id)
                 else:
                     break
 
             if not batch:
-                # Wait for a short time if no assets are found
+                # Wait for a short time if no aspect ratios are found
                 logger.info(
-                    f"No uploads found. Sleeping for {NO_ASPECT_RATIOS_WAIT_SECONDS} seconds.")
+                    f"No aspect ratios found. Sleeping for {NO_ASPECT_RATIOS_WAIT_SECONDS} seconds.")
                 await asyncio.sleep(NO_ASPECT_RATIOS_WAIT_SECONDS)
                 continue
 
@@ -256,4 +257,4 @@ async def find_and_convert_aspect_ratios(max_count=None, batch_size=1):
                 break
 
         except Exception as e:
-            logger.error(f"An exception occurred: {e}")
+            log_exception(logger, e)

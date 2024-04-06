@@ -13,6 +13,7 @@ from models.asset import Asset
 from models.app_response import AppResponse
 from models.video import Video
 from utils.json_helpers import clean_json, extract_json
+from utils.exception_helpers import log_exception
 
 load_dotenv()
 logger = setup_logger(__name__)
@@ -125,10 +126,11 @@ async def generate_script(video_id, change_status=True):
                     }
                 )
         except Exception as e:
-            logger.error(f"Error generating script for video {video_id}: {e}")
+            log_exception(logger, e)
             return AppResponse(
                 status="error",
-                message=f"Error generating script for video {video_id}: {e}"
+                data={"video_id": video_id,
+                      "message": f"Error generating script for video {video_id}: {e}"}
             )
 
 
@@ -172,24 +174,31 @@ async def find_videos_and_generate_scripts(max_count=None, batch_size=1, change_
             batch = []
             remaining_count = max_count - processed_count if max_count else None
             for _ in range(batch_size):
-                video_result = fetch_next_video_for_script_generation(
+                fetch_next_video_result = fetch_next_video_for_script_generation(
                     change_status=change_status)
-                if video_result.status == "success" and video_result.data["video_id"]:
-                    batch.append(video_result.data["video_id"])
-                    processed_count += 1
-                    if remaining_count and processed_count >= remaining_count:
-                        break
+                video_id = fetch_next_video_result.data.get("video_id")
+                if video_id:
+                    batch.append(video_id)
+                else:
+                    break
+
             if not batch:
-                # Wait for a short time if no video_requests are found
+                # Wait for a short time if no videos are found
                 logger.info(
                     f"No videos for script generation found. Sleeping for {NO_VIDEO_SCRIPTS_WAIT_SECONDS} seconds.")
                 await asyncio.sleep(NO_VIDEO_SCRIPTS_WAIT_SECONDS)
                 continue
 
             results = await asyncio.gather(*[generate_script(video_id, change_status=change_status) for video_id in batch])
+
+            for result in results:
+                if result.status == "error":
+                    logger.error(
+                        f"Error generating script for video {video_id}: {result.message}")
+
             processed_count += len(batch)
             if max_count is not None and processed_count >= max_count:
                 break
+
         except Exception as e:
-            logger.error(f"Error processing videos: {e}")
-            break
+            log_exception(logger, e)

@@ -8,6 +8,7 @@ from models.app_response import AppResponse
 from models.video_request import VideoRequest
 from models.video_request_format import VideoRequestFormat
 from models.video import Video
+from utils.exception_helpers import log_exception
 
 logger = setup_logger(__name__)
 
@@ -24,9 +25,9 @@ video_request_formats_collection = db.video_request_formats
 
 async def spawn_video_from_video_request_format(format_id: str, change_status=True, insert_videos=True):
     try:
-        video_request_format = video_request_formats_collection.find_one({
+        video_request_format_result = video_request_formats_collection.find_one({
                                                                          "_id": format_id})
-        video_request_format = VideoRequestFormat(**video_request_format)
+        video_request_format = VideoRequestFormat(**video_request_format_result)
 
         video_requests_result = video_requests_collection.find_one(
             {"_id": video_request_format.request_id})
@@ -167,9 +168,9 @@ async def find_video_request_formats_and_spawn_videos(max_count=None, batch_size
             batch = []
             remaining_count = max_count - processed_count if max_count is not None else batch_size
             for _ in range(min(batch_size, remaining_count)):
-                video_request_format_result = fetch_next_video_request_format_for_video_spawning(
+                fetch_next_video_request_format_result = fetch_next_video_request_format_for_video_spawning(
                     change_status=change_status)
-                format_id = video_request_format_result.data.get(
+                format_id = fetch_next_video_request_format_result.data.get(
                     'format_id', None)
                 if format_id:
                     batch.append(format_id)
@@ -202,4 +203,4 @@ async def find_video_request_formats_and_spawn_videos(max_count=None, batch_size
                 break
 
         except Exception as e:
-            print(f"An exception occurred: {e}")
+            log_exception(logger, e)
