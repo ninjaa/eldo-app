@@ -9,6 +9,7 @@ class VideoStatus(str, Enum):
     REQUESTED = "requested"
     SCRIPT_GENERATION_STARTED = "script_generation_started"
     SCRIPT_GENERATION_COMPLETE = "script_generation_complete"
+    SCENE_EXTRACTION_QUEUED = "scene_extraction_queued"
     SCENE_EXTRACTION_STARTED = "scene_extraction_started"
     SCENE_EXTRACTION_COMPLETE = "scene_extraction_complete"
     SCENE_NARRATION_STARTED = "scene_narration_started"

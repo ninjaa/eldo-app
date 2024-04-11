@@ -91,7 +91,18 @@ Each scene should have a narration and an optional asset_filename if mentioned i
 
 
 async def extract_scenes(video_id, change_status=True):
-    video = Video(**videos_collection.find_one({"_id": video_id}))
+    video_result = videos_collection.find_one_and_update(
+        {"_id": video_id},
+        {"$set": {
+            "status": "scene_generation_started",
+            "scene_generation_start_time": datetime.datetime.now(),
+            "scene_generation_end_time": None,
+            "scene_generation_duration": None
+        }},
+        sort=[("_id", pymongo.ASCENDING)],
+        return_document=pymongo.ReturnDocument.AFTER
+    )
+    video = Video(**video_result)
     try:
         event_video_obj = generate_scenes_with_llm(video.title, video.script)
         scenes_collection.delete_many({"video_id": video_id})
@@ -203,7 +214,7 @@ def fetch_next_video_for_scene_extraction(change_status=True):
                 "$set": {
                     "scene_extraction_start_time": datetime.datetime.now(),
                     "scene_extraction_end_time": None,
-                    "status": "scene_extraction_started"
+                    "status": "scene_extraction_queued"
                 },
                 "$inc": {"scene_extraction_attempts": 1}
             },
