@@ -7,8 +7,10 @@ from typing import Optional
 
 class SceneStatus(str, Enum):
     GENERATED = "generated"
-    NARRATED = "narrated"
-    SCRIPTED = "scripted"
+    NARRATION_QUEUED = "narration_queued"
+    NARRATION_STARTED = "narration_started"
+    NARRATION_COMPLETE = "narration_complete"
+    NARRATION_FAILED = "narration_failed"
 
 
 class Scene(BaseModel):
@@ -19,10 +21,13 @@ class Scene(BaseModel):
     aspect_ratio: str
     status: SceneStatus
     narration: Optional[str] = None
+    narration_audio_filename: Optional[str] = None
+    narration_language: Optional[str] = None
+    duration: Optional[float] = None
     asset_filename: Optional[str] = None
     prev_scene_id: Optional[str] = None
     next_scene_id: Optional[str] = None
-    narration_attempts: int = 0
-    narration_start_time: Optional[datetime.datetime] = None
-    narration_end_time: Optional[datetime.datetime] = None
-    narration_duration: Optional[float] = None
+    scene_narration_attempts: int = 0
+    scene_narration_start_time: Optional[datetime.datetime] = None
+    scene_narration_end_time: Optional[datetime.datetime] = None
+    scene_narration_duration: Optional[float] = None
