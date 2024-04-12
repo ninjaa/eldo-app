@@ -4,6 +4,7 @@ from models.upload import Upload
 _client, db = get_db_connection()
 
 
+
 def get_logo_upload(request_id):
     upload_result = db.uploads.find_one(
         {"request_id": request_id, "metadata.is_logo": True})

@@ -1,3 +1,4 @@
+import numpy as np
 from PIL import Image, ImageDraw
 
 
@@ -66,3 +67,30 @@ def create_gradient_background_image(size, top_color, bottom_color, file_path):
 # bottom_color = (200, 100, 100)  # Darker color for bottom (example: darker pinkish tone)
 
 # create_gradient_background_image(size, top_color, bottom_color, gradient_background_file_path)
+
+
+def create_circular_mask(image_path, output_path):
+    # Open the original image
+    im = Image.open(image_path).convert("RGBA")
+
+    # Determine the size for a square (the larger dimension of the image)
+    size = max(im.size)
+
+    # Create a new square image
+    new_im = Image.new("RGBA", (size, size), (0, 0, 0, 0))
+
+    # Paste the original image onto the square canvas, centered
+    left = (size - im.size[0]) // 2
+    top = (size - im.size[1]) // 2
+    new_im.paste(im, (left, top))
+
+    # Create an alpha layer with a circular mask
+    alpha = Image.new('L', new_im.size, 0)
+    draw = ImageDraw.Draw(alpha)
+    draw.ellipse([(0, 0), (size, size)], fill=255)
+
+    # Apply the circular mask
+    new_im.putalpha(alpha)
+
+    # Save the result with a transparent background
+    new_im.save(output_path, 'PNG')

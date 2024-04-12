@@ -1,3 +1,4 @@
+from utils.image.create_images_with_pil import create_circular_mask
 from constants import UPLOAD_DIRECTORY
 from models.scene import Scene
 from moviepy.editor import AudioFileClip, ImageClip, TextClip, CompositeVideoClip
@@ -35,7 +36,7 @@ def wrap_text(text, font, font_size, max_width):
 
 async def process_title_scene(scene: Scene, run_suffix: str = ""):
     generated_images_directory_path = os.path.join(
-        UPLOAD_DIRECTORY, scene.request_id, scene.aspect_ratio, "generated_images")
+        UPLOAD_DIRECTORY, scene.request_id, scene.aspect_ratio, "scene_images")
     os.makedirs(generated_images_directory_path, exist_ok=True)
     gradient_bg_path = f"{generated_images_directory_path}/{scene.id}_gradient.png"
     create_gradient_background_image(
@@ -43,14 +44,17 @@ async def process_title_scene(scene: Scene, run_suffix: str = ""):
     )
     max_text_width = SCREEN_SIZE[0] * 0.8  # Allow 80% of screen width for text
     font_size = int(SCREEN_SIZE[1] / 25)
-    line_spacing = font_size / 70
+    line_spacing = font_size / 60
 
     # Define the desired spacing from the top and bottom edges
-    top_spacing = int(SCREEN_SIZE[1] * 0.3) 
-    bottom_spacing = int(SCREEN_SIZE[1] * 0.83)  
+    top_spacing = int(SCREEN_SIZE[1] * 0.3)
+    logo_bottom_spacing = int(SCREEN_SIZE[1] * 0.70)
+    bottom_spacing = int(SCREEN_SIZE[1] * 0.80)
 
     # Assume we have a function that retrieves the logo upload details
     logo_upload = get_logo_upload(scene.request_id)
+    logo_relative_size = 0.15
+
     # And another that retrieves the brand link
     brand_link = get_brand_link(scene.request_id)
 
@@ -74,19 +78,23 @@ async def process_title_scene(scene: Scene, run_suffix: str = ""):
         letter_clip = letter_clip.set_duration(scene.duration)
 
         # Resize the letter clip to fit the screen appropriately
-        letter_clip = letter_clip.resize(height=SCREEN_SIZE[1] * 0.6)
+        letter_clip = letter_clip.resize(height=SCREEN_SIZE[1] * logo_relative_size)
 
         # Set the position of the letter clip
-        letter_clip = letter_clip.set_pos('center')
+        letter_clip = letter_clip.set_pos('center', logo_bottom_spacing)
 
         # Use the letter clip in place of the logo
         logo_clip = letter_clip
     else:
+        logo_with_circular_mask_path = os.path.join(
+            generated_images_directory_path, "logo_with_circular_mask.png")
+        create_circular_mask(logo_upload.file_path,
+                             logo_with_circular_mask_path)
         logo_clip = ImageClip(
-            logo_upload.file_path).set_duration(scene.duration)
+            logo_with_circular_mask_path).set_duration(scene.duration)
         # Resize logo to 60% of the screen width
-        logo_clip = logo_clip.resize(width=(SCREEN_SIZE[0] * 0.6))
-        logo_clip = logo_clip.set_pos('center')
+        logo_clip = logo_clip.resize(width=(SCREEN_SIZE[0] * logo_relative_size))
+        logo_clip = logo_clip.set_pos('center', logo_bottom_spacing)
 
     # Create a text clip for the narration text
     wrapped_narration = wrap_text(
