@@ -97,18 +97,18 @@ async def process_title_scene(scene: Scene, run_suffix: str = ""):
         logo_clip = logo_clip.set_pos('center', logo_bottom_spacing)
 
     # Create a text clip for the narration text
-    wrapped_narration = wrap_text(
-        scene.narration, "Lato", font_size, max_text_width)
-    logger.info(f"Narration: {wrapped_narration}")
+    # wrapped_narration = wrap_text(
+        # scene.narration, "Lato", font_size, max_text_width)
+    # logger.info(f"Narration: {wrapped_narration}")
     narration_text = TextClip(
-        wrapped_narration,
+        scene.narration,
         fontsize=font_size,
         color='white',
-        # size=(max_text_width, None),
+        size=(max_text_width, None),
         font="Verdana",
-        # method="caption",
-        # align="center",
-        interline=line_spacing
+        method="caption",
+        align="center",
+        interline=20
     )
     narration_text = narration_text.set_position(
         ('center', top_spacing)).set_duration(scene.duration)
