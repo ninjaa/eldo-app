@@ -9,7 +9,7 @@ from lib.database import get_db_connection
 from lib.logger import setup_logger
 import os
 from datetime import datetime
-
+from PIL import Image, ImageOps
 logger = setup_logger(__name__)
 
 _client, db = get_db_connection()
@@ -34,7 +34,7 @@ def wrap_text(text, font, font_size, max_width):
     return "\n".join(lines)
 
 
-async def process_title_scene(scene: Scene, run_suffix: str = ""):
+async def process_title_scene(scene: Scene, run_suffix: str = "", draw_bounding_box=False):
     generated_images_directory_path = os.path.join(
         UPLOAD_DIRECTORY, scene.request_id, scene.aspect_ratio, "scene_images")
     os.makedirs(generated_images_directory_path, exist_ok=True)
@@ -53,7 +53,7 @@ async def process_title_scene(scene: Scene, run_suffix: str = ""):
     # Assume we have a function that retrieves the logo upload details
     logo_upload = get_logo_upload(scene.request_id)
     logo_relative_size = 0.15
-    
+
     # After resizing the logo, calculate its height
     logo_height = SCREEN_SIZE[0] * logo_relative_size
     # Now, adjust logo_bottom_spacing to place the center of the logo at 70% of the screen height
@@ -84,7 +84,8 @@ async def process_title_scene(scene: Scene, run_suffix: str = ""):
         letter_clip = letter_clip.set_duration(scene.duration)
 
         # Resize the letter clip to fit the screen appropriately
-        letter_clip = letter_clip.resize(height=SCREEN_SIZE[1] * logo_relative_size)
+        letter_clip = letter_clip.resize(
+            height=SCREEN_SIZE[1] * logo_relative_size)
 
         # Set the position of the letter clip
         letter_clip = letter_clip.set_position('center', logo_bottom_spacing)
@@ -96,12 +97,27 @@ async def process_title_scene(scene: Scene, run_suffix: str = ""):
             generated_images_directory_path, "logo_with_circular_mask.png")
         create_circular_mask(logo_upload.file_path,
                              logo_with_circular_mask_path)
+
+        if draw_bounding_box:
+            # Open the image using PIL
+            logo_image = Image.open(logo_with_circular_mask_path)
+            # Define border color and thickness
+            border_color = 'black'  # Change this to your desired border color
+            border_thickness = 10  # Change this to your desired border thickness
+            # Add a border to the image
+            logo_image_with_border = ImageOps.expand(
+                logo_image, border=border_thickness, fill=border_color)
+            # Save the image back
+            logo_image_with_border.save(logo_with_circular_mask_path)
+
         logo_clip = ImageClip(
             logo_with_circular_mask_path).set_duration(scene.duration)
         # Resize logo to 60% of the screen width
-        logo_clip = logo_clip.resize(width=(SCREEN_SIZE[0] * logo_relative_size))
+        logo_clip = logo_clip.resize(
+            width=(SCREEN_SIZE[0] * logo_relative_size))
         logo_height = logo_clip.h
-        logo_clip = logo_clip.set_position('center', SCREEN_SIZE[1] - 100 - logo_height/2)
+        logo_clip = logo_clip.set_position((
+            'center', SCREEN_SIZE[1] * 0.7 - logo_height/2))
 
     # Create a text clip for the narration text
     # wrapped_narration = wrap_text(
@@ -168,7 +184,11 @@ async def process_title_scene_by_id(scene_id):
     scene_result = db.scenes.find_one({"_id": scene_id})
     if scene_result:
         scene = Scene(**scene_result)
-        return await process_title_scene(scene, run_suffix=f"{datetime.now().strftime('%Y%m%d_%H%M%S')}")
+        return await process_title_scene(
+            scene,
+            run_suffix=f"{datetime.now().strftime('%Y%m%d_%H%M%S')}",
+            draw_bounding_box=False
+        )
     else:
         logger.error(f"Scene with id {scene_id} not found")
         return None
