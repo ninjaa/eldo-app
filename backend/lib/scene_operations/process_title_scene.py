@@ -18,6 +18,21 @@ ASPECT_RATIO = (9, 16)
 SCREEN_SIZE = (1080, 1920)  # Example resolution based on 9:16 aspect ratio
 
 
+def wrap_text(text, font, font_size, max_width):
+    words = text.split()
+    lines = []
+    current_line = ""
+    for word in words:
+        if TextClip(current_line + " " + word, font=font, fontsize=font_size).size[0] <= max_width:
+            current_line += " " + word
+        else:
+            lines.append(current_line.strip())
+            current_line = word
+    if current_line:
+        lines.append(current_line.strip())
+    return "\n".join(lines)
+
+
 async def process_title_scene(scene: Scene, run_suffix: str = ""):
     generated_images_directory_path = os.path.join(
         UPLOAD_DIRECTORY, scene.request_id, scene.aspect_ratio, "generated_images")
@@ -28,9 +43,11 @@ async def process_title_scene(scene: Scene, run_suffix: str = ""):
     )
     max_text_width = SCREEN_SIZE[0] * 0.8  # Allow 80% of screen width for text
     font_size = int(SCREEN_SIZE[1] / 25)
+    line_spacing = font_size / 70
+
     # Define the desired spacing from the top and bottom edges
-    top_spacing = int(SCREEN_SIZE[1] * 0.1)  # 10% of the screen height
-    bottom_spacing = int(SCREEN_SIZE[1] * 0.05)  # 5% of the screen height
+    top_spacing = int(SCREEN_SIZE[1] * 0.3) 
+    bottom_spacing = int(SCREEN_SIZE[1] * 0.83)  
 
     # Assume we have a function that retrieves the logo upload details
     logo_upload = get_logo_upload(scene.request_id)
@@ -72,14 +89,18 @@ async def process_title_scene(scene: Scene, run_suffix: str = ""):
         logo_clip = logo_clip.set_pos('center')
 
     # Create a text clip for the narration text
+    wrapped_narration = wrap_text(
+        scene.narration, "Lato", font_size, max_text_width)
+    logger.info(f"Narration: {wrapped_narration}")
     narration_text = TextClip(
-        scene.narration,
+        wrapped_narration,
         fontsize=font_size,
         color='white',
-        size=(max_text_width, None),
+        # size=(max_text_width, None),
         font="Verdana",
-        method="caption",
-        align="center"
+        # method="caption",
+        # align="center",
+        interline=line_spacing
     )
     narration_text = narration_text.set_position(
         ('center', top_spacing)).set_duration(scene.duration)
@@ -87,7 +108,7 @@ async def process_title_scene(scene: Scene, run_suffix: str = ""):
     # Create a text clip for the social media handle
     social_media_text = TextClip(
         brand_link,
-        fontsize=int(font_size * 0.7),
+        fontsize=int(font_size * 0.6),
         color='white',
         size=(max_text_width, None),
         font="Verdana"
