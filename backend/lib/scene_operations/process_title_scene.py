@@ -44,16 +44,22 @@ async def process_title_scene(scene: Scene, run_suffix: str = ""):
     )
     max_text_width = SCREEN_SIZE[0] * 0.8  # Allow 80% of screen width for text
     font_size = int(SCREEN_SIZE[1] / 25)
-    line_spacing = font_size / 60
+    line_spacing = font_size / 3
 
     # Define the desired spacing from the top and bottom edges
     top_spacing = int(SCREEN_SIZE[1] * 0.3)
-    logo_bottom_spacing = int(SCREEN_SIZE[1] * 0.70)
     bottom_spacing = int(SCREEN_SIZE[1] * 0.80)
 
     # Assume we have a function that retrieves the logo upload details
     logo_upload = get_logo_upload(scene.request_id)
     logo_relative_size = 0.15
+    
+    # After resizing the logo, calculate its height
+    logo_height = SCREEN_SIZE[0] * logo_relative_size
+    # Now, adjust logo_bottom_spacing to place the center of the logo at 70% of the screen height
+    logo_bottom_spacing = int(SCREEN_SIZE[1] * 0.70)
+    logger.info(f"Logo height: {logo_height}")
+    logger.info(f"Logo bottom spacing: {logo_bottom_spacing}")
 
     # And another that retrieves the brand link
     brand_link = get_brand_link(scene.request_id)
@@ -81,7 +87,7 @@ async def process_title_scene(scene: Scene, run_suffix: str = ""):
         letter_clip = letter_clip.resize(height=SCREEN_SIZE[1] * logo_relative_size)
 
         # Set the position of the letter clip
-        letter_clip = letter_clip.set_pos('center', logo_bottom_spacing)
+        letter_clip = letter_clip.set_position('center', logo_bottom_spacing)
 
         # Use the letter clip in place of the logo
         logo_clip = letter_clip
@@ -94,7 +100,8 @@ async def process_title_scene(scene: Scene, run_suffix: str = ""):
             logo_with_circular_mask_path).set_duration(scene.duration)
         # Resize logo to 60% of the screen width
         logo_clip = logo_clip.resize(width=(SCREEN_SIZE[0] * logo_relative_size))
-        logo_clip = logo_clip.set_pos('center', logo_bottom_spacing)
+        logo_height = logo_clip.h
+        logo_clip = logo_clip.set_position('center', SCREEN_SIZE[1] - 100 - logo_height/2)
 
     # Create a text clip for the narration text
     # wrapped_narration = wrap_text(
@@ -108,7 +115,7 @@ async def process_title_scene(scene: Scene, run_suffix: str = ""):
         font="Verdana",
         method="caption",
         align="center",
-        interline=20
+        interline=line_spacing
     )
     narration_text = narration_text.set_position(
         ('center', top_spacing)).set_duration(scene.duration)
