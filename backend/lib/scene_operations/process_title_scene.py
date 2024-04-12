@@ -7,6 +7,7 @@ from utils.image.create_images_with_pil import create_gradient_background_image
 from lib.database import get_db_connection
 from lib.logger import setup_logger
 import os
+from datetime import datetime
 
 logger = setup_logger(__name__)
 
@@ -17,7 +18,7 @@ ASPECT_RATIO = (9, 16)
 SCREEN_SIZE = (1080, 1920)  # Example resolution based on 9:16 aspect ratio
 
 
-async def process_title_scene(scene: Scene):
+async def process_title_scene(scene: Scene, run_suffix: str = ""):
     generated_images_directory_path = os.path.join(
         UPLOAD_DIRECTORY, scene.request_id, scene.aspect_ratio, "generated_images")
     os.makedirs(generated_images_directory_path, exist_ok=True)
@@ -25,6 +26,11 @@ async def process_title_scene(scene: Scene):
     create_gradient_background_image(
         SCREEN_SIZE, (173, 216, 230), (0, 0, 139), gradient_bg_path
     )
+    max_text_width = SCREEN_SIZE[0] * 0.8  # Allow 80% of screen width for text
+    font_size = int(SCREEN_SIZE[1] / 25)
+    # Define the desired spacing from the top and bottom edges
+    top_spacing = int(SCREEN_SIZE[1] * 0.1)  # 10% of the screen height
+    bottom_spacing = int(SCREEN_SIZE[1] * 0.05)  # 5% of the screen height
 
     # Assume we have a function that retrieves the logo upload details
     logo_upload = get_logo_upload(scene.request_id)
@@ -41,7 +47,7 @@ async def process_title_scene(scene: Scene):
         # Generate a capital letter in a cool font
         letter = "M"  # @TODO Replace with the desired letter
         # Replace with the path to the cool font file
-        font = "Montserrat"
+        font = "Lato-Black"
         font_size = 200  # Adjust the font size as needed
         text_color = (255, 255, 255)  # White color, adjust as needed
 
@@ -67,15 +73,27 @@ async def process_title_scene(scene: Scene):
 
     # Create a text clip for the narration text
     narration_text = TextClip(
-        scene.narration, fontsize=70, color='white', size=SCREEN_SIZE)
+        scene.narration,
+        fontsize=font_size,
+        color='white',
+        size=(max_text_width, None),
+        font="Verdana",
+        method="caption",
+        align="center"
+    )
     narration_text = narration_text.set_position(
-        ('center', 'top')).set_duration(scene.duration)
+        ('center', top_spacing)).set_duration(scene.duration)
 
     # Create a text clip for the social media handle
     social_media_text = TextClip(
-        brand_link, fontsize=50, color='white', size=SCREEN_SIZE)
+        brand_link,
+        fontsize=int(font_size * 0.7),
+        color='white',
+        size=(max_text_width, None),
+        font="Verdana"
+    )
     social_media_text = social_media_text.set_position(
-        ('center', 'bottom')).set_duration(scene.duration)
+        ('center', bottom_spacing)).set_duration(scene.duration)
 
     # Composite all the clips together
     composite_clip = CompositeVideoClip(
@@ -99,7 +117,7 @@ async def process_title_scene(scene: Scene):
     output_directory = os.path.join(
         UPLOAD_DIRECTORY, scene.request_id, scene.aspect_ratio, "scene_videos")
     os.makedirs(output_directory, exist_ok=True)
-    output_filename = f"{scene.id}_title_scene.mp4"
+    output_filename = f"{scene.id}_title_scene{'_' + run_suffix if run_suffix else ''}.mp4"
     output_path = os.path.join(output_directory, output_filename)
     composite_clip.write_videofile(output_path, fps=24)
 
@@ -114,7 +132,7 @@ async def process_title_scene_by_id(scene_id):
     scene_result = db.scenes.find_one({"_id": scene_id})
     if scene_result:
         scene = Scene(**scene_result)
-        return await process_title_scene(scene)
+        return await process_title_scene(scene, run_suffix=f"{datetime.now().strftime('%Y%m%d_%H%M%S')}")
     else:
         logger.error(f"Scene with id {scene_id} not found")
         return None
