@@ -128,7 +128,7 @@ async def process_title_scene(scene: Scene, run_suffix: str = "", draw_bounding_
         fontsize=font_size,
         color='white',
         size=(max_text_width, None),
-        font="Verdana",
+        font="Lato-Medium",
         method="caption",
         align="center",
         interline=line_spacing
@@ -142,7 +142,7 @@ async def process_title_scene(scene: Scene, run_suffix: str = "", draw_bounding_
         fontsize=int(font_size * 0.6),
         color='white',
         size=(max_text_width, None),
-        font="Verdana"
+        font="Lato"
     )
     social_media_text = social_media_text.set_position(
         ('center', bottom_spacing)).set_duration(scene.duration)
