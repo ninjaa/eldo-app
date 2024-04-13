@@ -40,6 +40,9 @@ def get_video_clip(filename: str, duration: float = None):
 async def generate_scene_body_video(video: Video, scene: Scene, add_subtitles=False, add_narration=False):
     # import pdb
     # pdb.set_trace()
+    asset_directory_path = os.path.join(
+        UPLOAD_DIRECTORY, scene.request_id, scene.aspect_ratio, "assets")
+
     total_asset_duration = 0
     clips = []
 
@@ -60,7 +63,9 @@ async def generate_scene_body_video(video: Video, scene: Scene, add_subtitles=Fa
                 total_asset_duration += asset_duration
             elif asset_is_image(asset):
                 # 3. For an image, use a fixed duration of 2.5 seconds
-                clips.append(ImageClip(scene.asset_filename).set_duration(2.5))
+                asset_path = os.path.join(
+                    asset_directory_path, scene.asset_filename)
+                clips.append(ImageClip(asset_path).set_duration(2.5))
                 total_asset_duration += 2.5
 
     # 4. Calculate the gap and generate additional images if needed
@@ -93,7 +98,7 @@ async def generate_scene_body_video(video: Video, scene: Scene, add_subtitles=Fa
 
     if add_subtitles:
         subtitles_top_spacing = final_clip.h * 0.8
-        max_text_width = final_clip.w * 0.9 
+        max_text_width = final_clip.w * 0.9
         # font_size = int(final_clip.h / 25)
         subtitle_clips = generate_subtitle_clips(
             scene.narration, scene.duration, max_text_width, top_spacing=subtitles_top_spacing, words_per_phrase=3)
