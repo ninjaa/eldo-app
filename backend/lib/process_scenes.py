@@ -185,8 +185,10 @@ async def generate_scene_video(video: Video, scene: Scene, force_regenerate=Fals
             f"Using existing generated scene video: {scene.generated_scene_video}")
         return scene.generated_scene_video
 
-    if scene.scene_type in ["body", "has_speech"]:
-        scene_video_path = await generate_scene_body_video(video, scene, add_subtitles=True, add_narration=True)
+    if scene.scene_type == "body":
+        scene_video_path = await generate_scene_body_video(video, scene, add_subtitles=False, add_narration=True)
+    elif scene.scene_type == "has_speech":
+        scene_video_path = await generate_scene_body_video(video, scene, add_subtitles=False, add_narration=False)
     elif scene.scene_type in ["title", "middle_title", "outro"]:
         if scene.scene_type == "title":
             gradient_color = (173, 216, 230)
