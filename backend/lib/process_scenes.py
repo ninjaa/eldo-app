@@ -114,7 +114,7 @@ def monitor_memory_usage():
     print(f"Memory usage: {memory_usage_mb:.2f} MB")
 
 
-async def process_video(video_id, update_db=False):
+async def process_video(video_id, update_db=False, force_regenerate=False):
     # Load the video
     video_result = db.videos.find_one({'_id': video_id})
     if not video_result:
@@ -132,7 +132,7 @@ async def process_video(video_id, update_db=False):
     for scene_result in ordered_scene_results:
         scene = Scene(**scene_result)
         monitor_memory_usage()
-        scene_video_path = await generate_scene_video(video, scene)
+        scene_video_path = await generate_scene_video(video, scene, force_regenerate=force_regenerate)
         if scene_video_path:
             logger.info(f"Generated scene video path: {scene_video_path}")
             scene_video_paths.append(scene_video_path)
@@ -166,23 +166,28 @@ def order_scene_results(scene_results):
     return ordered_scenes
 
 
-async def fetch_and_process_videos():
+async def fetch_and_process_videos(force_regenerate=False):
     video_id = fetch_ready_video()
     if video_id:
         logger.info(f"Processing video {video_id}")
         preprocess_and_expand_scenes(video_id)
-        await process_video(video_id)
+        await process_video(video_id, force_regenerate=force_regenerate)
     else:
         logger.info("No videos ready for processing.")
 
 
-async def generate_scene_video(video: Video, scene: Scene):
+async def generate_scene_video(video: Video, scene: Scene, force_regenerate=False):
     logger.info(
         f"Generating scene video for scene {scene.scene_type} {scene.id}")
-    if scene.scene_type in ["body", "has_speech"]:
-        return await generate_scene_body_video(video, scene, add_subtitles=True, add_narration=True)
-    elif scene.scene_type in ["title", "middle_title", "outro"]:
 
+    if not force_regenerate and scene.generated_scene_video:
+        logger.info(
+            f"Using existing generated scene video: {scene.generated_scene_video}")
+        return scene.generated_scene_video
+
+    if scene.scene_type in ["body", "has_speech"]:
+        scene_video_path = await generate_scene_body_video(video, scene, add_subtitles=True, add_narration=True)
+    elif scene.scene_type in ["title", "middle_title", "outro"]:
         if scene.scene_type == "title":
             gradient_color = (173, 216, 230)
             gradient_color2 = (0, 0, 139)
@@ -193,4 +198,11 @@ async def generate_scene_video(video: Video, scene: Scene):
             gradient_color = (0, 0, 139)
             gradient_color2 = (173, 216, 230)
 
-        return await process_title_scene(scene, gradient_color=gradient_color, gradient_color2=gradient_color2)
+        scene_video_path = await process_title_scene(scene, gradient_color=gradient_color, gradient_color2=gradient_color2)
+
+    if scene_video_path:
+        # Update the scene with the generated video path
+        db.scenes.update_one({'_id': scene.id}, {
+                             '$set': {'generated_scene_video': scene_video_path}})
+
+    return scene_video_path
