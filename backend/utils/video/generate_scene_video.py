@@ -95,7 +95,7 @@ async def generate_scene_body_video(video: Video, scene: Scene, add_subtitles=Fa
         # Use the minimum of gap_duration and 2.5 seconds for the last clip
         generated_image_path = generate_image(scene, image_prompt, index)
         clips.append(
-            ImageClip(generated_image_path).set_duration(clip_duration))
+            ImageClip(generated_image_path).resize(SCREEN_SIZE).set_duration(clip_duration))
 
     # 5. Convert images to video clips and concatenate
     final_clip = concatenate_videoclips(clips)
