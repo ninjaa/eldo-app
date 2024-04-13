@@ -94,10 +94,10 @@ async def extract_scenes(video_id, change_status=True):
     video_result = videos_collection.find_one_and_update(
         {"_id": video_id},
         {"$set": {
-            "status": "scene_generation_started",
-            "scene_generation_start_time": datetime.datetime.now(),
-            "scene_generation_end_time": None,
-            "scene_generation_duration": None
+            "status": "scene_extraction_started",
+            "scene_extraction_start_time": datetime.datetime.now(),
+            "scene_extraction_end_time": None,
+            "scene_extraction_duration": None
         }},
         sort=[("_id", pymongo.ASCENDING)],
         return_document=pymongo.ReturnDocument.AFTER
@@ -247,7 +247,7 @@ async def find_scripted_videos_and_extract_scenes(max_count=None, batch_size=1, 
     while True:
         try:
             batch = []
-            remaining_count = max_count - processed_count if max_count else None
+            remaining_count = max_count - processed_count if max_count else float('inf')
             for _ in range(min(batch_size, remaining_count)):
                 fetch_next_video_result = fetch_next_video_for_scene_extraction(
                     change_status=change_status)
