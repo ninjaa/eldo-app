@@ -63,8 +63,10 @@ def create_video_request(video_request: InputVideoRequest):
     request_id = str(ObjectId())
     video_request_dict = video_request.model_dump(exclude={"formats"})
     video_request_dict["_id"] = request_id
+    video_request_obj = VideoRequest(**video_request_dict)
     # Insert the video request into the video_requests collection
-    video_requests_collection.insert_one(video_request_dict)
+    video_requests_collection.insert_one(
+        video_request_obj.model_dump(by_alias=True))
 
     # Now, handle the formats
     for format in video_request.formats:

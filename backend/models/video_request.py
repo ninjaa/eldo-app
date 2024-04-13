@@ -1,6 +1,7 @@
 from pydantic import BaseModel, Field
 from enum import Enum
 from bson.objectid import ObjectId
+from typing import Optional
 
 
 class VideoRequestStatus(str, Enum):
@@ -18,3 +19,4 @@ class VideoRequest(BaseModel):
     style: str
     status: VideoRequestStatus = VideoRequestStatus.PENDING
     spawning_attempts: int = 0
+    brand_link: Optional[str] = None
