@@ -1,3 +1,4 @@
+from constants import ASPECT_RATIO_SETTINGS
 from utils.image.create_images_with_pil import create_circular_mask
 from constants import UPLOAD_DIRECTORY
 from models.scene import Scene
@@ -13,7 +14,6 @@ from PIL import Image, ImageOps
 logger = setup_logger(__name__)
 
 _client, db = get_db_connection()
-from constants import ASPECT_RATIO_SETTINGS
 
 
 def wrap_text(text, font, font_size, max_width):
@@ -31,10 +31,10 @@ def wrap_text(text, font, font_size, max_width):
     return "\n".join(lines)
 
 
-async def process_title_scene(scene: Scene, run_suffix: str = "", draw_bounding_box=False):
+async def process_title_scene(scene: Scene, run_suffix: str = "", draw_bounding_box=False, gradient_color=(173, 216, 230), gradient_color2=(0, 0, 139)):
     ratio_settings = ASPECT_RATIO_SETTINGS.get(
         scene.aspect_ratio, ASPECT_RATIO_SETTINGS["9x16"])
-    
+
     SCREEN_SIZE = ratio_settings["SCREEN_SIZE"]
 
     generated_images_directory_path = os.path.join(
@@ -42,7 +42,7 @@ async def process_title_scene(scene: Scene, run_suffix: str = "", draw_bounding_
     os.makedirs(generated_images_directory_path, exist_ok=True)
     gradient_bg_path = f"{generated_images_directory_path}/{scene.id}_gradient.png"
     create_gradient_background_image(
-        SCREEN_SIZE, (173, 216, 230), (0, 0, 139), gradient_bg_path
+        SCREEN_SIZE, gradient_color, gradient_color2, gradient_bg_path
     )
     max_text_width = SCREEN_SIZE[0] * 0.8  # Allow 80% of screen width for text
     font_size = int(SCREEN_SIZE[1] / 25)

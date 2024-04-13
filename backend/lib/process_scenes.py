@@ -1,3 +1,10 @@
+from datetime import datetime
+from constants import UPLOAD_DIRECTORY
+import os
+from moviepy.editor import VideoFileClip, concatenate_videoclips
+from utils.video.generate_scene_video import generate_scene_body_video
+from lib.scene_operations.process_title_scene import process_title_scene
+from models.video import Video
 from bson.objectid import ObjectId
 from lib.database import get_db_connection
 from lib.logger import setup_logger
@@ -74,25 +81,106 @@ def fetch_ready_video():
             return video['_id']
 
 
-def process_video(video_id):
-    pass
+def concatenate_videos(video: Video, scene_video_paths):
+    # Load video clips
+    video_clips = [VideoFileClip(path) for path in scene_video_paths]
 
-    # # Process each scene based on its type and requirements
-    # for scene in scenes:
-    #     if scene['scene_type'] == 'title':
-    #         # Apply specific operations for title scenes
-    #         pass
-    #     elif scene['scene_type'] == 'body':
-    #         # Apply operations for body scenes
-    #         pass
-    #     # Add more conditions as necessary based on scene specifics
+    # Concatenate video clips
+    final_clip = concatenate_videoclips(video_clips)
+
+    output_directory = os.path.join(
+        UPLOAD_DIRECTORY, video.request_id, video.aspect_ratio, "final_cut")
+    # Generate output path for the final cut
+    timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
+    final_cut_path = os.path.join(
+        output_directory, f"final_cut_{timestamp}.mp4")
+
+    # Write the final cut to the output path
+    final_clip.write_videofile(final_cut_path)
+
+    # Close the video clips
+    for clip in video_clips:
+        clip.close()
+
+    return final_cut_path
 
 
-def fetch_and_process_videos():
+async def process_video(video_id, update_db=False):
+    # Load the video
+    video_result = db.videos.find_one({'_id': video_id})
+    if not video_result:
+        logger.error(f"Video {video_id} not found.")
+        return
+
+    video = Video(**video_result)
+
+    # Load and order the scenes
+    scene_results = list(db.scenes.find({'video_id': video_id}))
+    ordered_scene_results = order_scene_results(scene_results)
+
+    # Process each scene and generate scene videos
+    scene_video_paths = []
+    for scene_result in ordered_scene_results:
+        scene = Scene(**scene_result)
+        scene_video_path = await generate_scene_video(video, scene)
+        if scene_video_path:
+            logger.info(f"Generated scene video path: {scene_video_path}")
+            scene_video_paths.append(scene_video_path)
+
+    # Concatenate scene videos into the final cut
+    final_cut_path = concatenate_videos(video, scene_video_paths)
+
+    logger.info(f"Final cut path: {final_cut_path}")
+
+    if update_db:
+        # Update video status
+        db.videos.update_one({'_id': video_id}, {
+            '$set': {
+                'status': 'processing_complete',
+                'final_cut_path': final_cut_path
+            }})
+
+
+def order_scene_results(scene_results):
+    # Order scenes based on the linked list structure
+    ordered_scenes = []
+    scene_map = {scene['_id']: scene for scene in scene_results}
+    current_scene_id = next(
+        (scene['_id'] for scene in scene_results if not scene.get('prev_scene_id')), None)
+
+    while current_scene_id:
+        current_scene = scene_map[current_scene_id]
+        ordered_scenes.append(current_scene)
+        current_scene_id = current_scene.get('next_scene_id')
+
+    return ordered_scenes
+
+
+async def fetch_and_process_videos():
     video_id = fetch_ready_video()
     if video_id:
         logger.info(f"Processing video {video_id}")
         preprocess_and_expand_scenes(video_id)
-        process_video(video_id)
+        await process_video(video_id)
     else:
         logger.info("No videos ready for processing.")
+
+
+async def generate_scene_video(video: Video, scene: Scene):
+    logger.info(
+        f"Generating scene video for scene {scene.scene_type} {scene.id}")
+    if scene.scene_type in ["body", "has_speech"]:
+        return await generate_scene_body_video(video, scene, add_subtitles=True, add_narration=True)
+    elif scene.scene_type in ["title", "middle_title", "outro"]:
+
+        if scene.scene_type == "title":
+            gradient_color = (173, 216, 230)
+            gradient_color2 = (0, 0, 139)
+        elif scene.scene_type == "middle_title":
+            gradient_color = (255, 192, 203)  # Light pink
+            gradient_color2 = (255, 105, 180)  # Hot pink
+        elif scene.scene_type == "outro":
+            gradient_color = (0, 0, 139)
+            gradient_color2 = (173, 216, 230)
+
+        return await process_title_scene(scene, gradient_color=gradient_color, gradient_color2=gradient_color2)

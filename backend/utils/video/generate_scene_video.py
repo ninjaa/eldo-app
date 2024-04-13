@@ -37,7 +37,7 @@ def get_video_clip(filename: str, duration: float = None):
     return clip
 
 
-async def generate_scene_video_no_speech(video: Video, scene: Scene, add_subtitles=False, add_narration=False):
+async def generate_scene_body_video(video: Video, scene: Scene, add_subtitles=False, add_narration=False):
     # import pdb
     # pdb.set_trace()
     total_asset_duration = 0

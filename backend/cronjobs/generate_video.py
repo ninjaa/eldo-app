@@ -2,6 +2,7 @@ from pprint import pprint
 import argparse
 import sys
 import os
+import asyncio
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -22,4 +23,4 @@ if __name__ == "__main__":
     # parser.set_defaults(change_status=True, insert_videos=True)
     args = parser.parse_args()
 
-    fetch_and_process_videos()
+    asyncio.run(fetch_and_process_videos())
