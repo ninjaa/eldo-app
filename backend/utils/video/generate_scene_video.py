@@ -1,3 +1,4 @@
+from utils.video.generate_subtitles import generate_subtitle_clips
 import os
 from constants import UPLOAD_DIRECTORY
 from models.video import Video
@@ -86,6 +87,13 @@ async def generate_scene_video_no_speech(video: Video, scene: Scene, add_subtitl
     # 5. Convert images to video clips and concatenate
     final_clip = concatenate_videoclips(clips)
     final_clip.set_duration(scene.duration)
+
+    if add_subtitles:
+        from moviepy.editor import CompositeVideoClip
+        subtitles_top_spacing = final_clip.h - 100
+        subtitle_clips = generate_subtitle_clips(
+            scene.narration, scene.duration, top_spacing=subtitles_top_spacing, words_per_phrase=3)
+        final_clip = CompositeVideoClip([final_clip, *subtitle_clips])
 
     # Save the final video
     output_dir = f"{UPLOAD_DIRECTORY}/{scene.request_id}/{scene.aspect_ratio}/scene_videos"
