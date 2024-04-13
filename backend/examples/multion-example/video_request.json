@@ -3,18 +3,11 @@
     "topic": "multion was the co-sponsor of the Mistral AI hackathon in SF. We want to create a short video showing how awesome our company is and how the hackathon was well attended.",
     "style": "event video",
     "status": "pending",
+    "brand_link": "https://twitter.com/MultiOn_AI",
     "formats": [
-        {
-            "aspect_ratio": "16x9",
-            "length": 120
-        },
         {
             "aspect_ratio": "9x16",
             "length": 60
-        },
-        {
-            "aspect_ratio": "1x1",
-            "length": 15
         }
     ]
 }

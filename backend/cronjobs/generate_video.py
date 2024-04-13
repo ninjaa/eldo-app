@@ -12,7 +12,9 @@ if __name__ == "__main__":
         description='Generates video by processing scenes.')
     parser.add_argument("--regenerate", action="store_true",
                         help="Force regeneration of all scenes.")
+    parser.add_argument("--img2video", action="store_true",
+                        help="Generate img2video for each scene.")
 
     args = parser.parse_args()
 
-    asyncio.run(fetch_and_process_videos(force_regenerate=args.regenerate))
+    asyncio.run(fetch_and_process_videos(generate_img2video=args.img2video, force_regenerate=args.regenerate))

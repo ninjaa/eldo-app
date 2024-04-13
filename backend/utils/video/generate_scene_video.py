@@ -1,3 +1,4 @@
+from utils.video.generate_sd_img2video import generate_video_from_image
 from constants import ASPECT_RATIO_SETTINGS
 from moviepy.editor import CompositeVideoClip, AudioFileClip
 from utils.video.generate_subtitles import generate_subtitle_clips
@@ -41,7 +42,7 @@ def get_video_clip(filename: str, duration: float = None):
     return clip
 
 
-async def generate_scene_body_video(video: Video, scene: Scene, add_subtitles=False, add_narration=False):
+async def generate_scene_body_video(video: Video, scene: Scene, add_subtitles=False, add_narration=False, generate_img2video=False):
     ratio_settings = ASPECT_RATIO_SETTINGS.get(
         scene.aspect_ratio, ASPECT_RATIO_SETTINGS["9x16"])
 
@@ -71,8 +72,14 @@ async def generate_scene_body_video(video: Video, scene: Scene, add_subtitles=Fa
                 total_asset_duration += asset_duration
             elif asset_is_image(asset):
                 # 3. For an image, use a fixed duration of 2.5 seconds
+                # @TODO @NOTE sd img2video looks terrible for user media in many cases - look at settings
+                # if generate_img2video:
+                #     video_path = await generate_video_from_image(scene, asset_path)
+                #     clips.append(VideoFileClip(video_path).resize(
+                #         SCREEN_SIZE).set_duration(2.5))
+                # else:
                 clips.append(ImageClip(asset_path).resize(
-                    SCREEN_SIZE).set_duration(2.5))
+                        SCREEN_SIZE).set_duration(2.5))
                 total_asset_duration += 2.5
 
     # 4. Calculate the gap and generate additional images if needed
@@ -94,8 +101,13 @@ async def generate_scene_body_video(video: Video, scene: Scene, add_subtitles=Fa
     for index, (image_prompt, clip_duration) in enumerate(image_prompts_and_durations):
         # Use the minimum of gap_duration and 2.5 seconds for the last clip
         generated_image_path = generate_image(scene, image_prompt, index)
-        clips.append(
-            ImageClip(generated_image_path).resize(SCREEN_SIZE).set_duration(clip_duration))
+        if generate_img2video:
+            video_path = await generate_video_from_image(scene, generated_image_path)
+            clips.append(VideoFileClip(video_path).resize(
+                SCREEN_SIZE).set_duration(clip_duration))
+        else:
+            clips.append(ImageClip(generated_image_path).resize(
+                SCREEN_SIZE).set_duration(clip_duration))
 
     # 5. Convert images to video clips and concatenate
     final_clip = concatenate_videoclips(clips)
