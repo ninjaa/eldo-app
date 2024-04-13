@@ -1,3 +1,4 @@
+from constants import ASPECT_RATIO_SETTINGS
 from moviepy.editor import CompositeVideoClip, AudioFileClip
 from utils.video.generate_subtitles import generate_subtitle_clips
 import os
@@ -10,6 +11,7 @@ from lib.database import get_db_connection
 from utils.image.image_helpers import get_image_prompts
 from utils.image.generate_sd_image import generate_image
 import datetime
+from utils.video.video_helpers import get_video_size
 
 _client, db = get_db_connection()
 
@@ -30,7 +32,9 @@ def get_video_clip(filename: str, duration: float = None):
     :param duration: The duration to which the video should be trimmed (in seconds).
     :return: A VideoFileClip object.
     """
+    target_size = get_video_size(filename)
     clip = VideoFileClip(filename)
+    clip = clip.resize(target_size)
     if duration is not None and duration < clip.duration:
         # Trim the clip to the specified duration
         clip = clip.subclip(0, duration)
@@ -38,8 +42,10 @@ def get_video_clip(filename: str, duration: float = None):
 
 
 async def generate_scene_body_video(video: Video, scene: Scene, add_subtitles=False, add_narration=False):
-    # import pdb
-    # pdb.set_trace()
+    ratio_settings = ASPECT_RATIO_SETTINGS.get(
+        scene.aspect_ratio, ASPECT_RATIO_SETTINGS["9x16"])
+
+    SCREEN_SIZE = ratio_settings["SCREEN_SIZE"]
     asset_directory_path = os.path.join(
         UPLOAD_DIRECTORY, scene.request_id, scene.aspect_ratio, "assets")
 
@@ -105,7 +111,8 @@ async def generate_scene_body_video(video: Video, scene: Scene, add_subtitles=Fa
         clips_to_composite.extend(subtitle_clips)
 
     final_clip = CompositeVideoClip(clips_to_composite)
-
+    final_clip = final_clip.resize((SCREEN_SIZE[0], SCREEN_SIZE[1]))
+    
     if add_narration:
         # Load the scene narration audio
         narrations_directory_path = os.path.join(
