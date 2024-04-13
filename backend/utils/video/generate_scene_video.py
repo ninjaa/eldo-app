@@ -71,7 +71,8 @@ async def generate_scene_body_video(video: Video, scene: Scene, add_subtitles=Fa
                 total_asset_duration += asset_duration
             elif asset_is_image(asset):
                 # 3. For an image, use a fixed duration of 2.5 seconds
-                clips.append(ImageClip(asset_path).set_duration(2.5))
+                clips.append(ImageClip(asset_path).resize(
+                    SCREEN_SIZE).set_duration(2.5))
                 total_asset_duration += 2.5
 
     # 4. Calculate the gap and generate additional images if needed
@@ -103,16 +104,16 @@ async def generate_scene_body_video(video: Video, scene: Scene, add_subtitles=Fa
     clips_to_composite = [final_clip]
 
     if add_subtitles:
-        subtitles_top_spacing = final_clip.h * 0.8
-        max_text_width = final_clip.w * 0.9
+        subtitles_top_spacing = SCREEN_SIZE[1] * 0.8
+        max_text_width = SCREEN_SIZE[0] * 0.9
         # font_size = int(final_clip.h / 25)
         subtitle_clips = generate_subtitle_clips(
             scene.narration, scene.duration, max_text_width, top_spacing=subtitles_top_spacing, words_per_phrase=3)
         clips_to_composite.extend(subtitle_clips)
 
     final_clip = CompositeVideoClip(clips_to_composite)
-    final_clip = final_clip.resize((SCREEN_SIZE[0], SCREEN_SIZE[1]))
-    
+    final_clip = final_clip.resize(SCREEN_SIZE)
+
     if add_narration:
         # Load the scene narration audio
         narrations_directory_path = os.path.join(
