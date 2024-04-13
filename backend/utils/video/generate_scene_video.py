@@ -58,7 +58,7 @@ async def generate_scene_body_video(video: Video, scene: Scene, add_subtitles=Fa
                 clips.append(get_video_clip(
                     scene.asset_filename, asset_duration))
                 total_asset_duration += asset_duration
-            elif asset_is_image(scene.asset_filename):
+            elif asset_is_image(asset):
                 # 3. For an image, use a fixed duration of 2.5 seconds
                 clips.append(ImageClip(scene.asset_filename).set_duration(2.5))
                 total_asset_duration += 2.5
