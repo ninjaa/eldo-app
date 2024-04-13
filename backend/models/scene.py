@@ -31,3 +31,4 @@ class Scene(BaseModel):
     scene_narration_start_time: Optional[datetime.datetime] = None
     scene_narration_end_time: Optional[datetime.datetime] = None
     scene_narration_duration: Optional[float] = None
+    generated_scene_video: Optional[str] = None

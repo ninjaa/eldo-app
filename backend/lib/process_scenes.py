@@ -1,3 +1,4 @@
+import psutil
 from datetime import datetime
 from constants import UPLOAD_DIRECTORY
 import os
@@ -90,6 +91,7 @@ def concatenate_videos(video: Video, scene_video_paths):
 
     output_directory = os.path.join(
         UPLOAD_DIRECTORY, video.request_id, video.aspect_ratio, "final_cut")
+    os.makedirs(output_directory, exist_ok=True)
     # Generate output path for the final cut
     timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
     final_cut_path = os.path.join(
@@ -103,6 +105,13 @@ def concatenate_videos(video: Video, scene_video_paths):
         clip.close()
 
     return final_cut_path
+
+
+def monitor_memory_usage():
+    process = psutil.Process(os.getpid())
+    memory_info = process.memory_info()
+    memory_usage_mb = memory_info.rss / 1024 / 1024
+    print(f"Memory usage: {memory_usage_mb:.2f} MB")
 
 
 async def process_video(video_id, update_db=False):
@@ -122,6 +131,7 @@ async def process_video(video_id, update_db=False):
     scene_video_paths = []
     for scene_result in ordered_scene_results:
         scene = Scene(**scene_result)
+        monitor_memory_usage()
         scene_video_path = await generate_scene_video(video, scene)
         if scene_video_path:
             logger.info(f"Generated scene video path: {scene_video_path}")
