@@ -14,9 +14,34 @@ logger = setup_logger(__name__)
 
 _client, db = get_db_connection()
 
-# Define the aspect ratio dimensions
-ASPECT_RATIO = (9, 16)
-SCREEN_SIZE = (1080, 1920)  # Example resolution based on 9:16 aspect ratio
+
+# Define aspect ratio settings
+aspect_ratio_settings = {
+    "9x16": {
+        "ASPECT_RATIO": (9, 16),
+        "SCREEN_SIZE": (1080, 1920),
+        "top_spacing": 0.3,
+        "bottom_spacing": 0.8,
+        "logo_relative_size": 0.15,
+        "logo_bottom_spacing": 0.7,
+    },
+    "16x9": {
+        "ASPECT_RATIO": (16, 9),
+        "SCREEN_SIZE": (1920, 1080),
+        "top_spacing": 0.2,
+        "bottom_spacing": 0.75,
+        "logo_relative_size": 0.1,
+        "logo_bottom_spacing": 0.65,
+    },
+    "1x1": {
+        "ASPECT_RATIO": (1, 1),
+        "SCREEN_SIZE": (1080, 1080),
+        "top_spacing": 0.25,
+        "bottom_spacing": 0.75,
+        "logo_relative_size": 0.2,
+        "logo_bottom_spacing": 0.7,
+    }
+}
 
 
 def wrap_text(text, font, font_size, max_width):
@@ -35,6 +60,11 @@ def wrap_text(text, font, font_size, max_width):
 
 
 async def process_title_scene(scene: Scene, run_suffix: str = "", draw_bounding_box=False):
+    ratio_settings = aspect_ratio_settings.get(
+        scene.aspect_ratio, aspect_ratio_settings["9x16"])
+    
+    SCREEN_SIZE = ratio_settings["SCREEN_SIZE"]
+
     generated_images_directory_path = os.path.join(
         UPLOAD_DIRECTORY, scene.request_id, scene.aspect_ratio, "scene_images")
     os.makedirs(generated_images_directory_path, exist_ok=True)
@@ -47,17 +77,18 @@ async def process_title_scene(scene: Scene, run_suffix: str = "", draw_bounding_
     line_spacing = font_size / 3
 
     # Define the desired spacing from the top and bottom edges
-    top_spacing = int(SCREEN_SIZE[1] * 0.3)
-    bottom_spacing = int(SCREEN_SIZE[1] * 0.80)
+    top_spacing = int(SCREEN_SIZE[1] * ratio_settings["top_spacing"])
+    bottom_spacing = int(SCREEN_SIZE[1] * ratio_settings["bottom_spacing"])
 
     # Assume we have a function that retrieves the logo upload details
     logo_upload = get_logo_upload(scene.request_id)
-    logo_relative_size = 0.15
+    logo_relative_size = ratio_settings["logo_relative_size"]
 
     # After resizing the logo, calculate its height
     logo_height = SCREEN_SIZE[0] * logo_relative_size
     # Now, adjust logo_bottom_spacing to place the center of the logo at 70% of the screen height
-    logo_bottom_spacing = int(SCREEN_SIZE[1] * 0.70)
+    logo_bottom_spacing = int(
+        SCREEN_SIZE[1] * ratio_settings["logo_bottom_spacing"])
     logger.info(f"Logo height: {logo_height}")
     logger.info(f"Logo bottom spacing: {logo_bottom_spacing}")
 
