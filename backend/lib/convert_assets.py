@@ -46,9 +46,9 @@ async def convert_uploads_to_aspect_ratio(aspect_ratio_id):
             aspect_ratio_width = int(aspect_ratio_bits[0])
             aspect_ratio_height = int(aspect_ratio_bits[1])
             request_id = aspect_ratio.request_id
-            asset_directory_name = aspect_ratio.aspect_ratio
+            aspect_ratio_directory_name = aspect_ratio.aspect_ratio
             asset_directory_path = os.path.join(
-                UPLOAD_DIRECTORY, request_id, "assets", asset_directory_name)
+                UPLOAD_DIRECTORY, request_id, aspect_ratio_directory_name, "assets")
             os.makedirs(asset_directory_path, exist_ok=True)
             uploads = uploads_collection.find(
                 {"request_id": aspect_ratio.request_id})
