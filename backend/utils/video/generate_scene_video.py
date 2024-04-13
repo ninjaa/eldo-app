@@ -54,17 +54,17 @@ async def generate_scene_body_video(video: Video, scene: Scene, add_subtitles=Fa
             asset = Asset(**asset_result)
 
         if asset:
+            asset_path = os.path.join(
+                asset_directory_path, scene.asset_filename)
             # Assuming you have a way to determine if an asset is a video or image
             if asset_is_video(asset):
                 # 2. Use the video's duration
                 asset_duration = min(asset.metadata.duration, scene.duration)
                 clips.append(get_video_clip(
-                    scene.asset_filename, asset_duration))
+                    asset_path, asset_duration))
                 total_asset_duration += asset_duration
             elif asset_is_image(asset):
                 # 3. For an image, use a fixed duration of 2.5 seconds
-                asset_path = os.path.join(
-                    asset_directory_path, scene.asset_filename)
                 clips.append(ImageClip(asset_path).set_duration(2.5))
                 total_asset_duration += 2.5
 
