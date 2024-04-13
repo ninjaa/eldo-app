@@ -37,7 +37,7 @@ async def narrate_scene(scene_id, change_status=True):
     try:
         # Generate the output directory for scene narrations
         narrations_directory_path = os.path.join(
-            UPLOAD_DIRECTORY, scene.request_id, "scene_narrations", scene.aspect_ratio)
+            UPLOAD_DIRECTORY, scene.request_id, scene.aspect_ratio, "scene_narrations")
         os.makedirs(narrations_directory_path, exist_ok=True)
 
         # Escape the narration text
@@ -162,7 +162,7 @@ async def find_scenes_and_narrate(max_count=None, batch_size=1, change_status=Tr
     while True:
         try:
             batch = []
-            remaining_count = max_count - processed_count if max_count else None
+            remaining_count = max_count - processed_count if max_count else float('inf')
             for _ in range(min(batch_size, remaining_count)):
                 fetch_next_scene_result = fetch_next_scene_for_narration(
                     change_status=change_status)
