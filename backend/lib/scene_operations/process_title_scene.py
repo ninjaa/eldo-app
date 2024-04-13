@@ -157,7 +157,7 @@ async def process_title_scene(scene: Scene, run_suffix: str = "", draw_bounding_
 
     # Load the scene narration audio
     narrations_directory_path = os.path.join(
-        UPLOAD_DIRECTORY, scene.request_id, "scene_narrations", scene.aspect_ratio)
+        UPLOAD_DIRECTORY, scene.request_id, scene.aspect_ratio, "scene_narrations")
     narration_audio_path = os.path.join(
         narrations_directory_path, scene.narration_audio_filename)
     narration_audio = AudioFileClip(narration_audio_path)

@@ -212,7 +212,11 @@ def get_image_prompts(num_images, scene: Scene, video: Video):
         # Generate the stable diffusion image prompt
         it will be inserted into the string like so: f"RAW photo, Fujifilm XT, clean bright modern scene photograph, <prompt>"
         
-        So you just need to worry about the descriptive part.
+        So you just need to worry about the descriptive part. 
+        
+        Remember that each prompt should be completely independent, hence include specific visual descriptive details in each prompt, no prompt should be too generic.
+        
+        These images will be the backdrop of narrated social media reels, so they should be interesting and cool.
                 
         Please return the prompts as a list of strings, one per new line. Do not include anything in your response that is not a prompt.
     """

@@ -1,3 +1,4 @@
+from moviepy.editor import CompositeVideoClip, AudioFileClip
 from utils.video.generate_subtitles import generate_subtitle_clips
 import os
 from constants import UPLOAD_DIRECTORY
@@ -36,7 +37,7 @@ def get_video_clip(filename: str, duration: float = None):
     return clip
 
 
-async def generate_scene_video_no_speech(video: Video, scene: Scene, add_subtitles=False):
+async def generate_scene_video_no_speech(video: Video, scene: Scene, add_subtitles=False, add_narration=False):
     # import pdb
     # pdb.set_trace()
     total_asset_duration = 0
@@ -88,12 +89,25 @@ async def generate_scene_video_no_speech(video: Video, scene: Scene, add_subtitl
     final_clip = concatenate_videoclips(clips)
     final_clip.set_duration(scene.duration)
 
+    clips_to_composite = [final_clip]
+
     if add_subtitles:
-        from moviepy.editor import CompositeVideoClip
         subtitles_top_spacing = final_clip.h - 100
         subtitle_clips = generate_subtitle_clips(
             scene.narration, scene.duration, top_spacing=subtitles_top_spacing, words_per_phrase=3)
-        final_clip = CompositeVideoClip([final_clip, *subtitle_clips])
+        clips_to_composite.extend(subtitle_clips)
+
+    final_clip = CompositeVideoClip(clips_to_composite)
+
+    if add_narration:
+        # Load the scene narration audio
+        narrations_directory_path = os.path.join(
+            UPLOAD_DIRECTORY, scene.request_id, scene.aspect_ratio, "scene_narrations")
+        narration_audio_path = os.path.join(
+            narrations_directory_path, scene.narration_audio_filename)
+        narration_audio = AudioFileClip(narration_audio_path)
+        # Set the audio of the composite clip to be the narration audio
+        final_clip = final_clip.set_audio(narration_audio)
 
     # Save the final video
     output_dir = f"{UPLOAD_DIRECTORY}/{scene.request_id}/{scene.aspect_ratio}/scene_videos"
