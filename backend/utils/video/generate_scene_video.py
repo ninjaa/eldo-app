@@ -92,9 +92,11 @@ async def generate_scene_video_no_speech(video: Video, scene: Scene, add_subtitl
     clips_to_composite = [final_clip]
 
     if add_subtitles:
-        subtitles_top_spacing = final_clip.h - 100
+        subtitles_top_spacing = final_clip.h * 0.8
+        max_text_width = final_clip.w * 0.9 
+        # font_size = int(final_clip.h / 25)
         subtitle_clips = generate_subtitle_clips(
-            scene.narration, scene.duration, top_spacing=subtitles_top_spacing, words_per_phrase=3)
+            scene.narration, scene.duration, max_text_width, top_spacing=subtitles_top_spacing, words_per_phrase=3)
         clips_to_composite.extend(subtitle_clips)
 
     final_clip = CompositeVideoClip(clips_to_composite)
