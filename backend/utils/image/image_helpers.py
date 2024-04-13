@@ -1,3 +1,5 @@
+from models.video import Video
+from models.scene import Scene
 from PIL import Image
 import anthropic
 import base64
@@ -170,3 +172,70 @@ def detect_image_size_and_aspect_ratio(image_path):
     aspect_ratio = detect_aspect_ratio(image_width, image_height)
 
     return image_width, image_height, aspect_ratio
+
+
+def extract_and_fill_prompts(response_text, num_images, scene_narration):
+    # Split the response text into lines
+    lines = response_text.strip().split('\n')
+
+    # Filter out any empty lines or non-prompt text
+    prompts = [line for line in lines if len(line) > 10]
+
+    # Check if the number of prompts is at least num_images
+    if len(prompts) >= num_images:
+        return prompts[:num_images]
+    else:
+        required_prompts = num_images - len(prompts)
+        fill_prompts = [
+            f"{scene_narration}" for _ in range(required_prompts)]
+        prompts.extend(fill_prompts)
+        return prompts
+
+
+def get_image_prompts(num_images, scene: Scene, video: Video):
+    client = anthropic.Anthropic()
+
+    prompt = f"""
+        Given the following scene, you need to generate a list of image prompts.
+        The image prompts should be based on the narration of the scene.
+        
+        {scene.model_dump(by_alias=True)}
+        
+        The script of the whole video is here:
+        Title: {video.title}
+        {video.script}    
+        
+        Minimum number of prompts to generate: {num_images}
+        
+        They will all be use in the format: 
+         
+        # Generate the stable diffusion image prompt
+        it will be inserted into the string like so: f"RAW photo, Fujifilm XT, clean bright modern scene photograph, <prompt>"
+        
+        So you just need to worry about the descriptive part.
+                
+        Please return the prompts as a list of strings, one per new line. Do not include anything in your response that is not a prompt.
+    """
+
+    # Create the message for the Anthropic API
+    message = client.messages.create(
+        model="claude-3-haiku-20240307",
+        system="You are an image prompt creator for an AI video editor. You excel at answering with just prompts for image generation, one per newline",
+        max_tokens=1000,
+        messages=[
+            {
+                "role": "user",
+                "content": [
+                    {
+                        "type": "text",
+                        "text": prompt
+                    }
+                ],
+            }
+        ],
+    )
+
+    # Extract the profile picture detection result from the API response
+    message_text = message.content[0].text.strip().lower()
+
+    return extract_and_fill_prompts(message_text, num_images, scene.narration)
