@@ -59,8 +59,8 @@ def generate_image(scene: Scene, prompt, index: int) -> str:
     image = image_gen_response.images[0].to_pil()
     image.save(image_path)
 
-    # original_image = Image.open(image_path)
-    # resized_image = original_image.resize(SCREEN_SIZE, Image.ANTIALIAS)
-    # resized_image.save(image_path)  # Overwrite the original image
+    original_image = Image.open(image_path)
+    resized_image = original_image.resize(SCREEN_SIZE)
+    resized_image.save(image_path)  # Overwrite the original image
 
     return image_path
