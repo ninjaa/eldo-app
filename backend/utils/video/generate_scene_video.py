@@ -79,7 +79,7 @@ async def generate_scene_body_video(video: Video, scene: Scene, add_subtitles=Fa
                 #         SCREEN_SIZE).set_duration(2.5))
                 # else:
                 clips.append(ImageClip(asset_path).resize(
-                        SCREEN_SIZE).set_duration(2.5))
+                    SCREEN_SIZE).set_duration(2.5))
                 total_asset_duration += 2.5
 
     # 4. Calculate the gap and generate additional images if needed
@@ -116,11 +116,20 @@ async def generate_scene_body_video(video: Video, scene: Scene, add_subtitles=Fa
     clips_to_composite = [final_clip]
 
     if add_subtitles:
-        subtitles_top_spacing = SCREEN_SIZE[1] * 0.8
-        max_text_width = SCREEN_SIZE[0] * 0.9
-        # font_size = int(final_clip.h / 25)
+        print(SCREEN_SIZE)
+        subtitles_top_spacing = SCREEN_SIZE[1] * 0.85
+        print(f"subtitles top spacing {subtitles_top_spacing}")
+        max_text_width = SCREEN_SIZE[0] * 0.95
+        print(f"max_text_width {max_text_width}")
+        font_size = int(SCREEN_SIZE[1] / 20)
+        print(f"font_size {font_size}")
         subtitle_clips = generate_subtitle_clips(
-            scene.narration, scene.duration, max_text_width, top_spacing=subtitles_top_spacing, words_per_phrase=3)
+            scene.narration, 
+            scene.duration, 
+            max_text_width, 
+            top_spacing=subtitles_top_spacing, 
+            font_size=font_size
+        )
         clips_to_composite.extend(subtitle_clips)
 
     final_clip = CompositeVideoClip(clips_to_composite)
