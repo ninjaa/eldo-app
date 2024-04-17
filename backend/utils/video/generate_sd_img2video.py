@@ -47,7 +47,7 @@ async def generate_video_from_image(scene: Scene, asset_path: str):
             steps=25,
             cfg_scale=3,
             fps=6,
-            motion_scale=0.5,
+            motion_scale=0.2,
             noise_aug_strength=0.02,
             num_videos=1,
         )
