@@ -4,7 +4,25 @@ from moviepy.editor import TextClip
 def fit_text_in_line(text, max_chars, font_size):
     lines = []
     while text:
-        line, text = text[:max_chars], text[max_chars:]
+        if len(text) <= max_chars:
+            lines.append(text)
+            break
+        split_at = text.rfind(' ', 0, max_chars)
+        if split_at == -1:  # No spaces found, check for hyphenation
+            # Attempt to hyphenate
+            hyphenated = False
+            for i in range(max_chars, 0, -1):
+                if text[i-1] == '-':  # Found a hyphenation point
+                    lines.append(text[:i])
+                    text = text[i:]
+                    hyphenated = True
+                    break
+            if not hyphenated:  # No hyphenation point found, force split
+                split_at = max_chars
+                lines.append(text[:split_at])
+                text = text[split_at:]
+            continue
+        line, text = text[:split_at], text[split_at+1:]
         lines.append(line)
     return lines
 
