@@ -57,7 +57,7 @@ def generate_subtitle_clips(narration, total_duration, max_text_width, top_spaci
             stroke_width=3
         )
 
-        subtitle_position = ((1080 - max_text_width) / 2, top_spacing)
+        subtitle_position = ('center', top_spacing)
         subtitle_clip = subtitle_clip.set_start(current_time).set_duration(
             phrase_duration).set_position(subtitle_position)
         clips.append(subtitle_clip)
