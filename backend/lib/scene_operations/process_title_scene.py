@@ -77,7 +77,7 @@ async def process_title_scene(scene: Scene, run_suffix: str = "", draw_bounding_
         # Generate a capital letter in a cool font
         letter = "M"  # @TODO Replace with the desired letter
         # Replace with the path to the cool font file
-        font = "Lato-Black"
+        font = "Helvetica-Bold"
         font_size = 200  # Adjust the font size as needed
         text_color = (255, 255, 255)  # White color, adjust as needed
 
@@ -131,7 +131,7 @@ async def process_title_scene(scene: Scene, run_suffix: str = "", draw_bounding_
         fontsize=font_size,
         color='white',
         size=(max_text_width, None),
-        font="Lato-Medium",
+        font="Helvetica-Bold",
         method="caption",
         align="center",
         interline=line_spacing
@@ -145,7 +145,7 @@ async def process_title_scene(scene: Scene, run_suffix: str = "", draw_bounding_
         fontsize=int(font_size * 0.6),
         color='white',
         size=(max_text_width, None),
-        font="Lato"
+        font="Helvetica"
     )
     social_media_text = social_media_text.set_position(
         ('center', bottom_spacing)).set_duration(scene.duration)

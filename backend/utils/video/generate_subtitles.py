@@ -1,4 +1,4 @@
-from moviepy.editor import TextClip
+from moviepy.editor import TextClip, ColorClip, CompositeVideoClip
 
 
 def fit_text_in_line(text, max_chars, font_size):
@@ -27,7 +27,7 @@ def fit_text_in_line(text, max_chars, font_size):
     return lines
 
 
-def generate_subtitle_clips(narration, total_duration, max_text_width, top_spacing, font_size=30, line_spacing=5, words_per_phrase=3):
+def generate_subtitle_clips(narration, total_duration, max_text_width, top_spacing, font_size=30, line_spacing=10, words_per_phrase=3):
     words = narration.split()
     phrases = [' '.join(words[i:i+words_per_phrase])
                for i in range(0, len(words), words_per_phrase)]
@@ -50,17 +50,39 @@ def generate_subtitle_clips(narration, total_duration, max_text_width, top_spaci
             '\n'.join(phrase_lines),
             fontsize=font_size,
             color='white',
-            font="Amiri-Bold",
+            font="Helvetica-Bold",
             align='South',
             stroke_color='black',
             size=(max_text_width, phrase_height),
-            stroke_width=3
+            stroke_width=2
         )
 
         subtitle_position = ('center', top_spacing)
         subtitle_clip = subtitle_clip.set_start(current_time).set_duration(
             phrase_duration).set_position(subtitle_position)
-        clips.append(subtitle_clip)
+
+        # Create a background clip. Adjust color and opacity as needed.
+        background_clip = ColorClip(size=(subtitle_clip.w, subtitle_clip.h + 10),
+                                    color=(0, 0, 0))
+        # Set the position of the background clip to match the subtitle clip
+        background_clip = background_clip.set_start(current_time).set_duration(phrase_duration).set_position(
+            ('center', top_spacing - 5))
+
+        # To apply opacity, create a mask for the background clip using a ColorClip with the same size but in white and the desired opacity
+        mask = ColorClip(size=(subtitle_clip.w, subtitle_clip.h + 10),
+                         color=0.65, ismask=True)
+
+        mask = mask.set_start(current_time).set_duration(phrase_duration).set_position(
+            ('center', top_spacing - 5))
+
+        # Set the mask to the background clip
+        background_clip = background_clip.set_mask(mask).set_opacity(0.5)
+
+        # Composite the subtitle clip over the background
+        subtitle_clip_with_bg = CompositeVideoClip(
+            [background_clip, subtitle_clip], size=(1080, 1920))
+
+        clips.append(subtitle_clip_with_bg)
 
         current_time += phrase_duration
 
