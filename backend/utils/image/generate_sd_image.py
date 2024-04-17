@@ -27,7 +27,7 @@ def generate_image(scene: Scene, prompt, index: int) -> str:
     ASPECT_RATIO = ASPECT_RATIO_SETTINGS[scene.aspect_ratio]["ASPECT_RATIO"]
     SCREEN_SIZE = ASPECT_RATIO_SETTINGS[scene.aspect_ratio]["SCREEN_SIZE"]
     if ASPECT_RATIO == "16:9":
-        width = 1344
+        width = 1365
         height = 768
     elif ASPECT_RATIO == "1:1":
         width = 1024
