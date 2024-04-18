@@ -1,8 +1,8 @@
 import os
 import requests
 from constants import PDF_DOWNLOAD_FOLDER
-# from pdf2image import convert_from_path
-# from pdf2image.exceptions import PDFPageCountError, PDFSyntaxError
+from pdf2image import convert_from_path
+from pdf2image.exceptions import PDFPageCountError, PDFSyntaxError
 from utils.helpers import slugify
 from urllib.parse import urlparse, unquote
 
@@ -43,34 +43,31 @@ def download_and_save_pdf(url, download_folder=PDF_DOWNLOAD_FOLDER):
         return f"Error: {e}"
 
 
-# def convert_pdf_to_png(folder_images, pdf_file_path, arxiv_name):
-#     try:
-#         # Create a folder for storing the PNGs
-#         sub_folder_name = os.path.splitext(
-#             os.path.basename(pdf_file_path))[0] + "_pngs"
-#         full_path = os.path.join(folder_images, sub_folder_name)
-#         if not os.path.exists(full_path):
-#             os.makedirs(full_path)
+def convert_pdf_to_png(pdf_path, images_folder=None):
+    """
+    Convert a PDF file to PNG images, saving the images in a specified directory.
 
-#         # Convert each page of the PDF to PNG
-#         images = convert_from_path(pdf_file_path, output_folder=full_path)
-#         # arxiv_name = sub_folder_name.replace("_pngs", "")
+    Parameters:
+    - pdf_path: Path to the PDF file.
+    - images_folder: Directory to save the images. If None, saves in a subdirectory 'images' under the PDF's directory.
+    """
+    # Determine the images output directory
+    if images_folder is None:
+        base_dir = os.path.dirname(pdf_path)
+        images_folder = os.path.join(base_dir, "images")
 
-#         # Save each image as a separate PNG file
-#         for i, image in enumerate(images):
-#             png_path = os.path.join(
-#                 full_path, f"{arxiv_name}_page_{i + 1}.png")
-#             image.save(png_path, "PNG")
+    # Ensure the images directory exists
+    if not os.path.exists(images_folder):
+        os.makedirs(images_folder)
 
-#         print(f"\nAll pages converted and saved in the folder: {full_path}")
+    try:
+        # Convert PDF to a list of image objects
+        images = convert_from_path(pdf_path)
 
-#         # Clean up: Delete the .ppm files and uncropped files
-#         for filename in os.listdir(full_path):
-#             if filename.endswith(".ppm"):
-#                 file_to_remove_path = os.path.join(full_path, filename)
-#                 os.remove(file_to_remove_path)
-
-#         print(f"\n.ppm artifacts deleted in the folder: {full_path}")
-#     except Exception as e:
-#         print(f"\nError: {e}")
-#         print(f"Skipping processing of {pdf_file_path}")
+        # Save each page as an image in the specified directory
+        for i, image in enumerate(images):
+            image_path = os.path.join(images_folder, f"page_{i+1}.png")
+            image.save(image_path, 'PNG')
+            print(f"Saved: {image_path}")
+    except Exception as e:
+        print(f"Error converting PDF to PNG: {e}")
