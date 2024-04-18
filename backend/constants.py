@@ -1,5 +1,6 @@
 
 UPLOAD_DIRECTORY = "media"
+PDF_DOWNLOAD_FOLDER = "media/pdfs"
 
 # Define aspect ratio settings
 ASPECT_RATIO_SETTINGS = {
