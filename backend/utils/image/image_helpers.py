@@ -216,7 +216,16 @@ def get_image_prompts(num_images, scene: Scene, video: Video):
         
         Remember that each prompt should be completely independent, hence include specific visual descriptive details in each prompt, no prompt should be too generic.
         
-        These images will be the backdrop of narrated social media reels, so they should be interesting and cool.
+        For example, even if the the scene is talking about "tracks" it could be referring to a conference. So include the context of the video in each scene - location, type of event, etc.
+        
+        These images will be the backdrop of narrated social media reels, so they should be interesting and cool. Do not include anything related to text or logos as SDXL mangles that.
+        
+        Examples of great prompts:
+        "futuristic tech office interior, teams of young professionals working on laptops, cityscape of san francisco and bay bridge visible through large windows"
+        "a bustling scene of innovators and entrepreneurs gathered in a modern, well-lit co-working space, with the iconic san francisco skyline visible through large windows"
+        "iconic views of the bay bridge in San Francisco"
+        "teams of young professionals deeply engaged in collaborative discussions, with laptops and whiteboards surrounding them"
+        "close-up shots of diverse hackathon participants enthusiastically discussing and demonstrating their ai projects"
                 
         Please return the prompts as a list of strings, one per new line. Do not include anything in your response that is not a prompt.
     """

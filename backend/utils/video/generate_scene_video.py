@@ -116,7 +116,7 @@ async def generate_scene_body_video(video: Video, scene: Scene, add_subtitles=Fa
     clips_to_composite = [final_clip]
 
     if add_subtitles:
-        subtitles_top_spacing = SCREEN_SIZE[1] * 0.9
+        subtitles_top_spacing = SCREEN_SIZE[1] * 0.87
         max_text_width = SCREEN_SIZE[0] * 0.95
         font_size = int(SCREEN_SIZE[1] / 20)
         subtitle_clips = generate_subtitle_clips(
@@ -124,7 +124,8 @@ async def generate_scene_body_video(video: Video, scene: Scene, add_subtitles=Fa
             scene.duration,
             max_text_width,
             top_spacing=subtitles_top_spacing,
-            font_size=font_size
+            font_size=font_size,
+            screen_size=SCREEN_SIZE
         )
         clips_to_composite.extend(subtitle_clips)
 

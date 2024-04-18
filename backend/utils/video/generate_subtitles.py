@@ -27,7 +27,7 @@ def fit_text_in_line(text, max_chars, font_size):
     return lines
 
 
-def generate_subtitle_clips(narration, total_duration, max_text_width, top_spacing, font_size=30, line_spacing=10, words_per_phrase=3):
+def generate_subtitle_clips(narration, total_duration, max_text_width, top_spacing, font_size=30, screen_size=(1080, 1920), line_spacing=10, words_per_phrase=3):
     words = narration.split()
     phrases = [' '.join(words[i:i+words_per_phrase])
                for i in range(0, len(words), words_per_phrase)]
@@ -80,7 +80,7 @@ def generate_subtitle_clips(narration, total_duration, max_text_width, top_spaci
 
         # Composite the subtitle clip over the background
         subtitle_clip_with_bg = CompositeVideoClip(
-            [background_clip, subtitle_clip], size=(1080, 1920))
+            [background_clip, subtitle_clip], size=screen_size)
 
         clips.append(subtitle_clip_with_bg)
 

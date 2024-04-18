@@ -6,6 +6,7 @@ ASPECT_RATIO_SETTINGS = {
     "9x16": {
         "ASPECT_RATIO": (9, 16),
         "SCREEN_SIZE": (1080, 1920),
+        # "SCREEN_SIZE": (360, 640),
         "top_spacing": 0.3,
         "bottom_spacing": 0.8,
         "logo_relative_size": 0.15,
