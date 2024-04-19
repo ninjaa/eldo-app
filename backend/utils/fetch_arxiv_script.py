@@ -22,7 +22,7 @@ def fetch_arxiv_script(pdf_url, audience_type="high school", debug=False):
                 # Assuming 'le_script' is part of the 'outputs' type in the streamed response
                 if content.get('type') == "chunk" and content.get('value', {}).get('type') == "outputs":
                     le_script = content.get('value', {}).get(
-                        'values', {}).get('le script', None)
+                        'values', {}).get('le_script', None)
                     if le_script is not None:
                         print("le_script:", le_script)
                         return le_script
