@@ -75,7 +75,9 @@ def create_video_request(video_request: InputVideoRequest):
         format_id = str(ObjectId())
         print(format_id)
         video_request_aspect_ratio_result = video_request_aspect_ratios_collection.find_one(
-            {"aspect_ratio": format.aspect_ratio.replace(":", "x")}
+            {
+                "request_id": request_id,
+                "aspect_ratio": format.aspect_ratio.replace(":", "x")}
         )
 
         if not video_request_aspect_ratio_result:
