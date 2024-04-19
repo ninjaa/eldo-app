@@ -1,10 +1,13 @@
 import requests
 import json
+import os
+from dotenv import load_dotenv
 
+load_dotenv()
 
 def fetch_arxiv_script(pdf_url, audience_type="high school", debug=False):
     prompt_id = "cc4860c3-c22a-419e-a071-11e178bb4b69"
-    api_key = "sk-7PaL8YSTAJmc1hpFsLsMy4vVykWnqmY3yuuJwS7oAGahoSiRLl2SKi"
+    api_key = os.getenv("WORDWARE_API_KEY")
 
     # Execute the prompt with the PDF URL
     response = requests.post(f"https://app.wordware.ai/api/prompt/{prompt_id}/run",
