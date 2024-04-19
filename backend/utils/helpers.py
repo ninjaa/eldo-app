@@ -14,8 +14,10 @@ def get_logo_upload(request_id):
 
 
 def get_brand_link(request_id):
-    # @TODO add this to the request json and in the db
-    return "https://twitter.com/MultiOn_AI"
+    video_request = db.video_requests.find_one(
+        {"_id": request_id}
+    )
+    return video_request.get('brand_link', None)
 
 
 def slugify(value):
