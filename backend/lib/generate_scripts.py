@@ -32,8 +32,8 @@ def generate_title_and_script(video: Video, assets: List[Asset]):
 
     api_token = os.getenv("MISTRAL_API_KEY")
     client = openai.OpenAI(
-        base_url="https://api.mistral.ai/v1",
-        api_key=api_token
+        # base_url="https://api.mistral.ai/v1",
+        # api_key=api_token
     )
 
     number_of_words = math.ceil(2.5 * video.length)
@@ -64,6 +64,8 @@ def generate_title_and_script(video: Video, assets: List[Asset]):
     The assets to use are as follows:
     {assets_json}
     
+    The video will be for social media so the hooks and pacing are vital.
+    
     Please provide your title and script as JSON in the following format
     
         {{ 
@@ -76,7 +78,8 @@ def generate_title_and_script(video: Video, assets: List[Asset]):
     print(prompt)
 
     chat_completion = client.chat.completions.create(
-        model="mistral-large-latest",
+        # model="mistral-large-latest",
+        model="gpt-4-turbo-preview",
         messages=[
             {"role": "system", "content": "You are a video editor screenwriting and then cutting a TV news / social media video."},
             {"role": "user", "content": prompt},
