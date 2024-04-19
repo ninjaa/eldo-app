@@ -1,6 +1,6 @@
 from moviepy.editor import ColorClip, CompositeVideoClip, VideoFileClip
 from utils.video.video_helpers import get_video_size
-
+from constants import ASPECT_RATIO_SETTINGS
 import shutil
 # default codec is 'libx264'
 # default bitrate is 2000
@@ -13,11 +13,10 @@ def convert_video_to_aspect_ratio(input_path, output_path, aspect_ratio_width, a
 
     # Load the video clip
     video = VideoFileClip(input_path)
-    
+
     # Manually set the video width and height by resizing
     # Replace (new_width, new_height) with your desired dimensions
     video = video.resize(newsize=(video_width, video_height))
-
 
     # Calculate the current aspect ratio
     current_aspect_ratio = video_width / video_height
@@ -70,6 +69,14 @@ def convert_video_to_aspect_ratio(input_path, output_path, aspect_ratio_width, a
         x2 = x1 + new_width
         y2 = y1 + new_height
         final_clip = video.crop(x1=x1, y1=y1, x2=x2, y2=y2)
+
+    # Find the corresponding SCREEN_SIZE from ASPECT_RATIO_SETTINGS
+    aspect_ratio_key = f"{aspect_ratio_width}x{aspect_ratio_height}"
+    screen_size = ASPECT_RATIO_SETTINGS.get(aspect_ratio_key, {}).get(
+        "SCREEN_SIZE", (aspect_ratio_width, aspect_ratio_height))
+
+    # resize to target size
+    final_clip = final_clip.resize(screen_size)
 
     # Write the final clip to a file
     final_clip.write_videofile(

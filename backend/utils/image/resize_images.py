@@ -1,5 +1,6 @@
 from PIL import Image, ImageOps
 import shutil
+from constants import ASPECT_RATIO_SETTINGS
 
 def convert_image_to_aspect_ratio(input_path, output_path, aspect_ratio_width, aspect_ratio_height, crop_type="contain", background_color=(0, 0, 0)):
     # Load the image
@@ -57,5 +58,12 @@ def convert_image_to_aspect_ratio(input_path, output_path, aspect_ratio_width, a
         # Paste the original image onto the new image
         final_image.paste(image, (x_position, y_position))
 
+    # Find the corresponding SCREEN_SIZE from ASPECT_RATIO_SETTINGS
+    aspect_ratio_key = f"{aspect_ratio_width}x{aspect_ratio_height}"
+    screen_size = ASPECT_RATIO_SETTINGS.get(aspect_ratio_key, {}).get("SCREEN_SIZE", (aspect_ratio_width, aspect_ratio_height))
+
+    # resize to target size
+    final_image = final_image.resize(screen_size)
+    
     # Save the final image
     final_image.save(output_path)
