@@ -26,6 +26,22 @@ Today @TODO let's clear up the asset generation bit and figure out how the statu
 The truth is that asset description and asset conversion may not have to wait for each other ... should I eke out every ounce? Yes because that's what an ur programmer would do
 Right now each video has one output aspect ratio
 
+# Arxiv flow
+
+1. call wordware for script
+
+curl -X POST https://app.wordware.ai/api/prompt/cc4860c3-c22a-419e-a071-11e178bb4b69/run -H "Authorization: Bearer WORDWARTOKEN i" -d '{"inputs": {"pdf_url": "https://arxiv.org/pdf/2404.10636.pdf", "audience_type": "high school"}}'
+
+2. diagrammatic
+
+3. How do I do the image chopping? scripts convert_pdf_to_images
+
+We still can't upload diagrammatic with descriptions
+
+https://news.ycombinator.com/item?id=40107787
+https://jsomers.net/i-should-have-loved-biology/
+
+
 ## Debugging the Queue
 
 Change MONGO_DB_NAME parameter to `cut-copy-dev` instead of `cut-copy-prod` (PROD MONGO_DB_NAME)

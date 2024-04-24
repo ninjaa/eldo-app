@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Eldo AI Video Editor Submission Form</title>
+<style>
+  body {
+    font-family: 'Verdana', sans-serif;
+    background-color: #000;
+    color: #d4af37;
+    margin: 0;
+    padding: 0;
+  }
+  .container {
+    max-width: 800px;
+    margin: 30px auto;
+    padding: 20px;
+    background: #1a1a1a;
+    border-radius: 8px;
+  }
+  .centered-logo {
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  input, textarea, select, button {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 20px;
+    border: 1px solid #d4af37;
+    border-radius: 4px;
+    background: #000;
+    color: #d4af37;
+  }
+  label {
+    display: block;
+    margin-bottom: 5px;
+  }
+  button {
+    background-color: #d4af37;
+    color: #000;
+    cursor: pointer;
+  }
+  button:hover {
+    opacity: 0.9;
+  }
+  .drag-area {
+    border: 2px dashed #d4af37;
+    padding: 30px;
+    text-align: center;
+    cursor: pointer;
+  }
+  .drag-area.dragover {
+    background-color: #333;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="centered-logo">
+    <img src="eldo-logo.png" alt="Eldo Logo" style="max-width: 200px;">
+  </div>
+
+  <h2>Eldo AI Video Editor Submission Form</h2>
+  
+  <label for="language">Language:</label>
+  <select id="language" name="language">
+    <option value="english">English</option>
+    <!-- Add other language options here -->
+  </select>
+  
+  <label for="topic">Video Topic:</label>
+  <textarea id="topic" name="topic" rows="40"></textarea>
+  
+  <label>Video Styles:</label>
+  <input type="checkbox" id="event_video" name="video_style" value="event_video">
+  <label for="event_video">Event Video</label>
+  <input type="checkbox" id="technical_news" name="video_style" value="technical_news">
+  <label for="technical_news">Technical News</label>
+  <input type="checkbox" id="explainer" name="video_style" value="explainer">
+  <label for="explainer">Explainer</label>
+  
+  <!-- Repeat above block for additional video styles as needed -->
+  
+  <label for="status">Current Status:</label>
+  <select id="status" name="status">
+    <option value="pending">Pending</option>
+    <option value="in_progress">In Progress</option>
+    <option value="completed">Completed</option>
+  </select>
+  
+  <label for="brand_link">Brand Social Media Link:</label>
+  <input type="url" id="brand_link" name="brand_link">
+  
+  <div class="drag-area" id="drag-area">
+    <p>Drag and drop assets here or click to upload</p>
+    <input type="file" id="fileInput" multiple hidden>
+  </div>
+  
+  <button type="submit">Submit Your Project</button>
+  
+</div>
+
+<script>
+  const dragArea = document.getElementById('drag-area');
+  const fileInput = document.getElementById('fileInput');
+
+  dragArea.addEventListener('click', () => fileInput.click());
+  fileInput.addEventListener('change', (event) => {
+    handleFiles(event.target.files);
+  });
+
+  ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+    dragArea.addEventListener(eventName, preventDefaults, false);
+  });
+
+  function preventDefaults (e) {
+    e.preventDefault();
+    e.stopPropagation();
+  }
+
+  ['dragenter', 'dragover'].forEach(eventName => {
+    dragArea.addEventName => dragArea.classList.add('dragover'), false);
+  });
+
+  ['dragleave', 'drop'].forEach(eventName => dragArea.classList.remove('dragover'), false);
+
+  dragArea.addEventListener('drop', (event) => {
+    let files = event.dataTransfer.files;
+    handleFiles(files);
+  });
+
+  function handleFiles(files) {
+    console.log(files); // Can be updated to actually handle file uploads
+  }
+</script>
+</body>
+</html>
