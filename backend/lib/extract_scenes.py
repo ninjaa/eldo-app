@@ -62,7 +62,40 @@ title: {title}
 script: 
 {script}
 
+Each scene should have a narration and an optional asset_filename if mentioned in the script. That piece of media will be shown with the narration.
+
+If the asset has_speech, make the associated narration short as it will go on a title slide. 
+
+Feel free to split the narration into multiple scenes if it is too long, as long as is coherent and informative.
+
+FEEL FREE TO CHANGE THE NARRATION TO MATCH THE GUIDELINES. BUT DO REMEMBER NOT TO MAKE THE NARRATION A PURE DESCRIPTION BUT PART OF THE STORY.
+
+KEEP THE COHERENT STORY ARC IN MIND.
+
+So, for example
+
+
+Narrator (Voiceover): The secret sauce? A tokenizer expanded to 128,000 tokens, slashing token count by 15%. This isn't just an upgrade; it's a revolution in efficiency. Cut to: 'mark-zuckerberg-yann-lecun-meta-ai-image-9x16.webp', featuring Mark Zuckerberg and Yann LeCun, the brilliant minds propelling this innovation.
+
+=> can yield 
+asset_filename: mark-zuckerberg-yann-lecun-meta-ai-image-9x16.webp
+narration: "Mark Zuckerberg and Yann LeCun, the brilliant minds propelling this innovation. The secret sauce? A tokenizer expanded to 128,000 tokens, slashing token count by 15%. This isn't just an upgrade; it's a revolution in efficiency."
+
+Or
+Narrator (Voiceover): But there's more - the introduction of Grouped Query Attention across all models, a game-changer in optimizing AI performance. Cut to: 'karpathy-profile-pic-image-9x16.webp', as Andrej Karpathy shares his insights on this architectural marvel.
+=> 
+
+asset_filename: karpathy-profile-pic-image-9x16.webp
+narration: "Andrej Karpathy shares his insights on this architectural marvel, mentioning the introduction of Grouped Query Attention across all models, a game-changer in optimizing AI performance."
+
+And
+something like 
+Narrator (Voiceover): Imagine a world where AI understands us better than ever before. That's the promise of Llama 3, with its 8 billion and 70 billion parameter models, and a 400 billion behemoth on the horizon. Cut to: 'Mark Zuckerberg - Llama 3, $10B Models, Caesar Augustus, & 1 GW Datacenters [bc6uFV9CJGg]-video-9x16.webm', capturing the excitement of this groundbreaking project.
+
+=> should be split into two scenes, the first one with no asset_filename and the latter one with the video and a short narration like "Here's Mark Zuckerberg capturing the excitement" (keep it short)
+
 Each scene should have a narration and an optional asset_filename if mentioned in the script.
+
 """
 
     print(prompt)
