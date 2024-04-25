@@ -12,10 +12,10 @@ def submit_video_request(folder_path):
     video_request_data = {
         "lang": "english",
         "topic": topic,
-        "style": "event video",
+        "style": "technical announcement",
         "status": "pending",
         "brand_link": "https://twitter.com/aditya_advani",
-        "formats": [{"aspect_ratio": "9x16", "length": 120}]
+        "formats": [{"aspect_ratio": "9x16", "length": 180}]
     }
 
     # Send the video request
