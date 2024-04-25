@@ -48,13 +48,19 @@ def generate_title_and_script(video: Video, assets: List[Asset]):
         video_format = ""
 
     prompt = f"""
-    You're an expert AI video editor and you're tasked with generating a title and script for a social media video for a big brand.
+    You're an expert AI video editor and you're tasked with generating a title and script for a social media video for a news story, either for a big brand or for a news network.
     
-    Please refer to what the company does and also to the setting. 
+    If it's for a big brand, please refer to what the company does and also to the setting.
+    
+    If it's for a news network story, please refer to the setting.
     
     Please be very explicit about the city and the landmarks and other distinctive features as we will generate content and search stock databases using keywords mined from the script.
     
-    Please include Narrator (Voiceover) as well as Cut to: in the script. If there's testimonials or any other videos with speech in the assets, you can Cut to: those as well, refer to the filename or type.
+    Please include Narrator (Voiceover) as well as associated assets for the storyboard (they can be videos too). If there's testimonials or any other videos with speech in the assets, you can name those assets those as well, they are valuable.
+    
+    The format should be like
+    [asset-filename.mp4]
+    Narrator (Voiceover): narration for the asset / scene
     
     Please keep the script to under {number_of_words} words this is for a {video.length} second {video_format} {video.style}.
     
@@ -64,7 +70,27 @@ def generate_title_and_script(video: Video, assets: List[Asset]):
     The assets to use are as follows:
     {assets_json}
     
-    The video will be for social media so the hooks and pacing are vital.
+    If you use an asset that has speech, please keep the related narration to just a handful of words as they will likely be used in a title slide.
+    
+    If you use an asset that is a picture of a person, please be sure the name or names of those people are made explicit in the narration. 
+    
+    Feel free to cite them if they are directy quoted in the source. According to Karpathy ... etc. We will not actually be cutting to scenes, just storyboarding so it's imporant people be named in the narration as well as it be explained what their connection is to the story.
+    
+    If the date is cited, feel free to mention it if is relevant.
+    
+    The video will be for social media so the intro hook is vital. Please make it very engaging and entertaining. 
+    Also, factual, i.e. please stick to information in the script provided above that has already been fact-checked by editors.
+    
+    Do not mention brand names or company names too often. Do mention them, just don't overdo it by mentioning them in every single scene. Instead, name the other participants in the story.
+    
+    Stories should capture the audience interest and make them want to watch the video.
+    
+    Keep the technical details, they are interesting as well, but weave them into the story. Do not fabricate things, the script in the video provided has been fact-checked by editorial.
+    
+    This is a tough balance but fortunately, you're the best at grokking topics and getting a story to the audience.
+    
+    PLEASE STICK TO INFORMATION IN THE VIDEO SCRIPT PROVIDED AS IT HAS BEEN FACT-CHECKED.
+    
     
     Please provide your title and script as JSON in the following format
     
@@ -79,7 +105,7 @@ def generate_title_and_script(video: Video, assets: List[Asset]):
 
     chat_completion = client.chat.completions.create(
         # model="mistral-large-latest",
-        model="gpt-4-turbo-preview",
+        model="gpt-4",
         messages=[
             {"role": "system", "content": "You are a video editor screenwriting and then cutting a TV news / social media video."},
             {"role": "user", "content": prompt},
