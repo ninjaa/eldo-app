@@ -147,7 +147,7 @@ async def generate_scene_body_video(video: Video, scene: Scene, add_subtitles=Fa
     os.makedirs(output_dir, exist_ok=True)
     timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
     output_path = os.path.join(
-        output_dir, f"{scene.id}_final_scene_{timestamp}.mp4")
-    final_clip.write_videofile(output_path, fps=24)
+        output_dir, f"{scene.id}_final_scene_{scene.scene_type}_{timestamp}.mp4")
+    final_clip.write_videofile(output_path, fps=24, threads=4)
 
     return output_path
