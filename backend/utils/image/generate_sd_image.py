@@ -23,7 +23,7 @@ def generate_image(scene: Scene, prompt, index: int) -> str:
     """
     # Generate the stable diffusion image prompt
     logger.info(f"Generating image for scene {scene.id} with prompt {prompt}")
-    prompt = f"RAW photo, Fujifilm XT, clean bright modern scene photograph, {prompt}"
+    prompt = f"RAW photo, Fujifilm XT, clean bright modern scene photograph, inspired by the movie Drive's aesthetics but more colorful and cheerful as well, sci-fi, futuristic, {prompt}"
     ASPECT_RATIO = ASPECT_RATIO_SETTINGS[scene.aspect_ratio]["ASPECT_RATIO"]
     SCREEN_SIZE = ASPECT_RATIO_SETTINGS[scene.aspect_ratio]["SCREEN_SIZE"]
     if ASPECT_RATIO == "16:9":
@@ -40,7 +40,7 @@ def generate_image(scene: Scene, prompt, index: int) -> str:
     image_gen_response = image_gen.generate(
         engine=Engine.SDXL,
         prompt=prompt,
-        negative_prompt="Blurry photo, distortion, low-res, poor quality, watermark, text",
+        negative_prompt="Blurry photo, distortion, low-res, poor quality, watermark, text, Ryan Gosling",
         width=width,
         height=height,
         num_images=1,
