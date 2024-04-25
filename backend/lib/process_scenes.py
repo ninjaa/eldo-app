@@ -86,6 +86,14 @@ def concatenate_videos(video: Video, scene_video_paths):
     # Load video clips
     video_clips = [VideoFileClip(path) for path in scene_video_paths]
 
+    # Apply fade-in and fade-out effects
+    for i, clip in enumerate(video_clips):
+        if i != 0:  # Skip fade-in for the first clip
+            clip = clip.fadein(0.5)
+        if i != len(video_clips) - 1:  # Skip fade-out for the last clip
+            clip = clip.fadeout(0.5)
+        video_clips[i] = clip
+
     # Concatenate video clips
     final_clip = concatenate_videoclips(video_clips)
 
