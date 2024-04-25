@@ -47,10 +47,12 @@ async def narrate_scene(scene_id, change_status=True):
         # Generate the output filename
         audio_filename = f"scene_{scene.id}.mp3"
         output_path = os.path.join(narrations_directory_path, audio_filename)
-
+        # voice_id = 'nPczCjzI2devNBz1zQrb'# Brian
+        voice_id = 'D1oPFWPLjALndiJuOrEC' # ELDO
+        
         # Send the scene narration to ElevenLabs for text-to-speech
         curl_command = f'curl --request POST '\
-                       f'--url https://api.elevenlabs.io/v1/text-to-speech/nPczCjzI2devNBz1zQrb '\
+                       f'--url https://api.elevenlabs.io/v1/text-to-speech/{voice_id} '\
                        f'--header "Content-Type: application/json" '\
                        f'--header "xi-api-key: {os.getenv("ELEVENLABS_API_KEY")}" '\
                        f'--data \'{{ '\
