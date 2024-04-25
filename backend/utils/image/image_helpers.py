@@ -209,16 +209,21 @@ def get_image_prompts(num_images, scene: Scene, video: Video):
         
         They will all be use in the format: 
          
-        # Generate the stable diffusion image prompt
-        it will be inserted into the string like so: f"RAW photo, Fujifilm XT, clean bright modern scene photograph, <prompt>"
+        Generate the stable diffusion image prompt, it will be inserted into a string like so: f"RAW photo, Fujifilm XT, clean bright modern scene photograph, <prompt>"
         
         So you just need to worry about the descriptive part. 
         
-        Remember that each prompt should be completely independent, hence include specific visual descriptive details in each prompt, no prompt should be too generic.
+        Remember that each prompt should be completely independent, hence include specific visual descriptive details in each prompt, no prompt should be generic.
         
         For example, even if the the scene is talking about "tracks" it could be referring to a conference. So include the context of the video in each scene - location, type of event, etc.
         
         These images will be the backdrop of narrated social media reels, so they should be interesting and cool. Do not include anything related to text or logos as SDXL mangles that.
+        
+        Avoid text, diagrams, signage and names of people in the prompts. The image generation model will know of "San Francisco" but not of "the city". Also, avoid the word "logo" in the prompts and do not mention company or brand names as the model will not know them and will just generate gibberish. Instead, describe the image in terms of the visuals and the scene.
+        
+        Avoid the names of celebrities. Avoid hands, feet, body parts. Do not show visualize futuristic soldiers or superheroes unless specifically demanded by the script.
+        
+        Try to avoid imagining AI as robots. Just don't overdo it, be cool, this counts, it's news.
         
         Examples of great prompts:
         "futuristic tech office interior, teams of young professionals working on laptops, cityscape of san francisco and bay bridge visible through large windows"
@@ -232,7 +237,7 @@ def get_image_prompts(num_images, scene: Scene, video: Video):
 
     # Create the message for the Anthropic API
     message = client.messages.create(
-        model="claude-3-haiku-20240307",
+        model="claude-3-opus-20240229",
         system="You are an image prompt creator for an AI video editor. You excel at answering with just prompts for image generation, one per newline",
         max_tokens=1000,
         messages=[
