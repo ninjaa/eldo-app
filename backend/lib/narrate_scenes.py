@@ -46,10 +46,12 @@ async def narrate_scene(scene_id, change_status=True):
 
         # Generate the output filename
         audio_filename = f"scene_{scene.id}.mp3"
+        raw_output_path = os.path.join(
+            narrations_directory_path, "raw_elevenlabs_", audio_filename)
         output_path = os.path.join(narrations_directory_path, audio_filename)
         # voice_id = 'nPczCjzI2devNBz1zQrb'# Brian
-        voice_id = 'D1oPFWPLjALndiJuOrEC' # ELDO
-        
+        voice_id = 'D1oPFWPLjALndiJuOrEC'  # ELDO
+
         # Send the scene narration to ElevenLabs for text-to-speech
         curl_command = f'curl --request POST '\
                        f'--url https://api.elevenlabs.io/v1/text-to-speech/{voice_id} '\
@@ -63,9 +65,19 @@ async def narrate_scene(scene_id, change_status=True):
                        f'"stability": 0.3, '\
                        f'"use_speaker_boost": true '\
                        f'}} '\
-                       f'}}\' -o "{output_path}"'
+                       f'}}\' -o "{raw_output_path}"'
 
         subprocess.run(curl_command, shell=True)
+
+        # Create silent audio of 0.35 seconds
+        silence_file = os.path.join(narrations_directory_path, "silence.mp3")
+        if not os.path.exists(silence_file):
+            ffmpeg_silence_command = f'ffmpeg -f lavfi -i anullsrc=r=44100:cl=stereo -t 0.35 "{silence_file}"'
+            subprocess.run(ffmpeg_silence_command, shell=True)
+
+        # Concatenate silence + original audio + silence
+        ffmpeg_concat_command = f'ffmpeg -i "concat:{silence_file}|{raw_output_path}|{silence_file}" -acodec copy "{output_path}"'
+        subprocess.run(ffmpeg_concat_command, shell=True)
 
         # Get the duration of the generated MP3 using ffprobe
         ffprobe_command = f'ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 "{output_path}"'
@@ -77,7 +89,7 @@ async def narrate_scene(scene_id, change_status=True):
         scene_narration_end_time = datetime.datetime.now()
         scene_narration_duration = (
             scene_narration_end_time - scene.scene_narration_start_time).total_seconds()
-        
+
         scenes_collection.update_one(
             {"_id": scene_id},
             {
@@ -164,7 +176,8 @@ async def find_scenes_and_narrate(max_count=None, batch_size=1, change_status=Tr
     while True:
         try:
             batch = []
-            remaining_count = max_count - processed_count if max_count else float('inf')
+            remaining_count = max_count - \
+                processed_count if max_count else float('inf')
             for _ in range(min(batch_size, remaining_count)):
                 fetch_next_scene_result = fetch_next_scene_for_narration(
                     change_status=change_status)
