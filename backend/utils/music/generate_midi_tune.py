@@ -1,3 +1,5 @@
+import base64
+import replicate
 import subprocess
 import datetime
 import mido
@@ -148,7 +150,7 @@ def convert_midi_to_mp3(midi_file, mp3_file, soundfont_file='/usr/share/sounds/s
     subprocess.run(['rm', temp_file], check=True)
 
 
-def process_music_prompt(prompt):
+def process_music_prompt(prompt, duration):
     # Fetch the command and generation pattern to generate MIDI
     c2m_command = fetch_c2m_tune(prompt)
     generation_pattern = fetch_generation_pattern(c2m_command, prompt)
@@ -176,7 +178,26 @@ def process_music_prompt(prompt):
     print(f"Generated MP3 file: {mp3_filename}")
     print(f"Used generation pattern: {generation_pattern}")
 
+    # Encode the MP3 file to a base64 data URI
+    with open(mp3_filename, "rb") as mp3_file:
+        mp3_data = mp3_file.read()
+        mp3_base64 = base64.b64encode(mp3_data).decode('utf-8')
+        input_audio_url = f"data:audio/mpeg;base64,{mp3_base64}"
+
+    # Call replicate API with the generated MP3 file
+    input = {
+        "prompt": generation_pattern,
+        "duration": duration,
+        "input_audio": input_audio_url
+    }
+
+    output = replicate.run(
+        "nateraw/musicgen-songstarter-v0.2:020ac56a613f4494065e2e5544c7377788a8abcfbe645ecb8146634de0bc383e",
+        input=input
+    )
+    print(output)
 
 if __name__ == "__main__":
     music_prompt = "happy triumphant tune for a tv news article with pictures of memes"
-    process_music_prompt(music_prompt)
+    duration = 10  # Duration in seconds
+    process_music_prompt(music_prompt, duration)
