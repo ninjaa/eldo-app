@@ -198,6 +198,7 @@ def process_music_prompt(prompt, duration):
     print(output)
 
 if __name__ == "__main__":
-    music_prompt = "happy triumphant tune for a tv news article with pictures of memes"
+    # music_prompt = "happy triumphant tune for a tv news article with pictures of memes"
+    music_prompt = "like a funky cocteau twins song but with a more upbeat and happy feel about a new AI model named llama3"
     duration = 10  # Duration in seconds
     process_music_prompt(music_prompt, duration)
