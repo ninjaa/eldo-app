@@ -37,7 +37,7 @@ def fetch_arxiv_script(input_data, audience_type="high school", debug=False):
         for line in response.iter_lines():
             if line:
                 content = json.loads(line.decode('utf-8'))
-                print(content)
+                print(content) if debug else None
                 if content.get('type') == "chunk" and content.get('value', {}).get('type') == "outputs":
                     le_script = content.get('value', {}).get(
                         'values', {}).get('le_script', None)

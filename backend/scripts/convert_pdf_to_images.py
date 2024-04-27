@@ -14,16 +14,6 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description="Convert a pdf to a set of screenshots.")
     parser.add_argument("url", help="Url to remote pdf.")
-    # # parser.add_argument(
-    # #     "output_path", help="Path to save the output video file.")
-    # # parser.add_argument("aspect_ratio_width", type=int,
-    # #                     help="Width of the desired aspect ratio.")
-    # # parser.add_argument("aspect_ratio_height", type=int,
-    # #                     help="Height of the desired aspect ratio.")
-    # # parser.add_argument("--crop-type", choices=["center", "contain"],
-    # #                     default="center", help="Crop type: 'center' or 'contain' (default).")
-    # # parser.add_argument("--background-color", nargs=3, type=int,
-    # #                     default=[0, 0, 0], help="Background color in RGB format (default: black).")
 
     args = parser.parse_args()
 

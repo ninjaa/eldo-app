@@ -30,13 +30,19 @@ Right now each video has one output aspect ratio
 
 1. call wordware for script
 
-curl -X POST https://app.wordware.ai/api/prompt/cc4860c3-c22a-419e-a071-11e178bb4b69/run -H "Authorization: Bearer WORDWARTOKEN i" -d '{"inputs": {"pdf_url": "https://arxiv.org/pdf/2404.10636.pdf", "audience_type": "high school"}}'
+scripts/fetch_technical_paper_script.py
 
 2. diagrammatic
-
-3. How do I do the image chopping? scripts convert_pdf_to_images
-
 We still can't upload diagrammatic with descriptions
+UPSTAGE_API_KEY= python image_extraction_pipeline.py sample_data/Attention3pg.pdf
+and then
+
+3. How do I do the image chopping? 
+scripts/convert_pdf_to_images
+
+4. 
+submit using submit_arxiv_video_request ... let's just cycle through the diagramatic output and mark those images up in particular
+
 
 https://news.ycombinator.com/item?id=40107787
 https://jsomers.net/i-should-have-loved-biology/
