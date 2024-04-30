@@ -1,3 +1,4 @@
+import math
 from pydantic import BaseModel, Field
 from enum import Enum
 from bson.objectid import ObjectId
@@ -27,7 +28,7 @@ class Video(BaseModel):
     status: VideoStatus = VideoStatus.REQUESTED
     aspect_ratio: str
     length: int
-    
+
     # Script Generation
     title: Optional[str] = None
     script: Optional[str] = None
@@ -37,16 +38,29 @@ class Video(BaseModel):
     script_generation_processing_end_time: Optional[datetime.datetime] = None
     script_generation_processing_duration: Optional[float] = None
     script_generation_attempts: int = 0
-    
+
     # Scene Extraction
     scene_extraction_start_time: Optional[datetime.datetime] = None
     scene_extraction_end_time: Optional[datetime.datetime] = None
     scene_extraction_duration: Optional[float] = None
     scene_extraction_attempts: int = 0
-    
+
     # Scene Narration
     scene_narration_start_time: Optional[datetime.datetime] = None
     scene_narration_end_time: Optional[datetime.datetime] = None
     scene_narration_duration: Optional[float] = None
     scene_narration_attempts: int = 0
-    
+
+    @property
+    def number_of_words(self) -> int:
+        return math.ceil(2.5 * self.length)
+
+    @property
+    def video_format(self) -> str:
+        if self.aspect_ratio == "16x9":
+            return "YouTube"
+        elif self.aspect_ratio == "1x1":
+            return "Instagram"
+        elif self.aspect_ratio == "9x16":
+            return "TikTok"
+        return ""

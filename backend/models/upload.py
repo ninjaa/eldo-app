@@ -1,5 +1,5 @@
 import datetime
-from typing import List, Literal, Optional
+from typing import Dict, Literal, Optional, Any
 from pydantic import BaseModel, Field, validator
 from typing import Union
 from enum import Enum
@@ -43,6 +43,7 @@ class Upload(BaseModel):
     file_path: str
     file_extension: str
     filename_without_extension: str
+    annotations: Optional[Dict[str, Any]] = None
     description: str = ""
     transcript: str = ""
     processed: bool = False

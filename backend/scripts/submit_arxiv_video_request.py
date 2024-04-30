@@ -1,6 +1,7 @@
 import requests
 import os
 import json
+import glob
 
 
 def submit_video_request(folder_path):
@@ -43,6 +44,44 @@ def submit_video_request(folder_path):
     uploads_folder = os.path.join(folder_path, 'uploads')
     for file in os.listdir(uploads_folder):
         upload_file(os.path.join(uploads_folder, file))
+
+    # Upload files from diagrams/ folder
+    diagrams_folder = os.path.join(folder_path, 'diagrams')
+    for file in os.listdir(diagrams_folder):
+        upload_file(os.path.join(diagrams_folder, file))
+
+        # Parse the JSON file for figure list
+    json_files = glob.glob(os.path.join(folder_path, '*_figure_list.json'))
+    if json_files:
+        with open(json_files[0], 'r') as json_file:
+            figure_list = json.load(json_file)
+
+        # Upload and post annotations for matched diagrams
+        diagrams_folder = os.path.join(folder_path, 'diagrams')
+        for figure in figure_list:
+            import pdb; pdb.set_trace()
+            image_name = figure['image_name']
+            image_caption = figure['image_caption']
+            image_description = figure['image_descriptions']
+
+            # Use glob to find matching files
+            diagram_path_pattern = os.path.join(
+                diagrams_folder, f"{image_name}.*")
+            matching_files = glob.glob(diagram_path_pattern)
+            if matching_files:
+                diagram_path = matching_files[0]  # Take the first match
+                asset_filename = os.path.basename(
+                    diagram_path)  # Extract filename from path
+                # Post the caption, description, and filename as JSON
+                annotation_data = {
+                    "asset_filename": asset_filename,
+                    "image_caption": image_caption,
+                    "image_description": image_description
+                }
+                requests.post(
+                    f"http://127.0.0.1:8000/video-request/{request_id}/annotations",
+                    json=annotation_data
+                )
 
     # Finalize the video request
     requests.post(f"http://127.0.0.1:8000/video-request/{request_id}/finalize")

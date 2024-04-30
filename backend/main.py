@@ -9,7 +9,7 @@ import os
 
 from fastapi import FastAPI, File, UploadFile, Path, Response, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-
+from pydantic import BaseModel, Extra
 
 from dotenv import load_dotenv
 from bson.objectid import ObjectId
@@ -145,6 +145,34 @@ async def upload_media(request_id: str = Path(...), file: UploadFile = File(...)
     uploads_collection.insert_one(upload.model_dump(by_alias=True))
 
     return {"upload_id": upload_id}
+
+
+class AnnotationData(BaseModel):
+    asset_filename: str
+
+    class Config:
+        extra = Extra.allow  # Allow extra fields
+
+
+@app.post("/video-request/{request_id}/annotations")
+async def handle_annotations(request_id: str, annotation_data: AnnotationData):
+    # Access the data directly from the annotation_data object
+    asset_filename = annotation_data.asset_filename
+    # Access additional data
+    additional_data = annotation_data.dict(exclude={"asset_filename"})
+
+    existing_upload = uploads_collection.find_one(
+        {"request_id": request_id, "filename": asset_filename})
+    if not existing_upload:
+        return Response(status_code=404)
+
+    # Update the existing upload with the additional data as annotations
+    uploads_collection.update_one(
+        {"_id": existing_upload["_id"]},
+        {"$set": {"annotations": additional_data}}
+    )
+
+    return {"status": "success", "message": "Annotation added to the upload"}
 
 
 @app.post("/video-request/{request_id}/finalize")
