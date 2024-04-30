@@ -4,6 +4,8 @@
 # convert to format aspect ratio
 # if all uploads have been converted to the aspect ratio within, we will update the status of the video_request_format to "converted"
 
+from models.asset import Asset
+from typing import Optional
 from constants import UPLOAD_DIRECTORY
 import asyncio
 import datetime
@@ -30,6 +32,7 @@ _client, db = get_db_connection()
 
 videos_collection = db.videos
 scenes_collection = db.scenes
+assets_collection = db.assets
 
 # This enables response_model keyword
 # from client.chat.completions.create
@@ -42,7 +45,7 @@ NO_SCRIPTS_WAIT_SECONDS = 5
 class Scene(BaseModel):
     """The object representing a scene in the event video"""
     narration: str = Field(description="Narration or voiceover for the scene")
-    asset_filename: str = Field(
+    asset_filenames: List[str] = Field(
         description="Filename of the associated asset (image or video) for the scene, if applicable", default=None)
 
 
@@ -53,16 +56,20 @@ class EventVideo(BaseModel):
         description="List of scenes in the event video (starts with Cut to), including the title scene and outro scene")
 
 
-def generate_scenes_with_llm(title, script):
+def generate_scenes_with_llm(video: Video, assets: List[Asset]):
+    assets_json = [asset.model_dump_json(indent=2) for asset in assets]
     prompt = f"""
-Generate scenes for an event video based on the following script:
+Generate scenes for a {video.length} second {video.video_format} {video.style} based on the following script:
 
 Use Cut to: as a marker for a new scene or a new Narrator: block
-title: {title}
+title: {video.title}
 script: 
-{script}
+{video.script}
 
-Each scene should have a narration and an optional asset_filename if mentioned in the script. That piece of media will be shown with the narration.
+all available assets:
+{assets_json}
+
+Each scene should have a narration and an optional list of asset_filenames if mentioned in the script. That piece of media will be shown with the narration.
 
 If the asset has_speech, make the associated narration short as it will go on a title slide. 
 
@@ -78,14 +85,14 @@ So, for example
 Narrator (Voiceover): The secret sauce? A tokenizer expanded to 128,000 tokens, slashing token count by 15%. This isn't just an upgrade; it's a revolution in efficiency. Cut to: 'mark-zuckerberg-yann-lecun-meta-ai-image-9x16.webp', featuring Mark Zuckerberg and Yann LeCun, the brilliant minds propelling this innovation.
 
 => can yield 
-asset_filename: mark-zuckerberg-yann-lecun-meta-ai-image-9x16.webp
+asset_filenames: [mark-zuckerberg-yann-lecun-meta-ai-image-9x16.webp, facebook-meta-ai-image-9x16.webp]
 narration: "Mark Zuckerberg and Yann LeCun, the brilliant minds propelling this innovation. The secret sauce? A tokenizer expanded to 128,000 tokens, slashing token count by 15%. This isn't just an upgrade; it's a revolution in efficiency."
 
 Or
 Narrator (Voiceover): But there's more - the introduction of Grouped Query Attention across all models, a game-changer in optimizing AI performance. Cut to: 'karpathy-profile-pic-image-9x16.webp', as Andrej Karpathy shares his insights on this architectural marvel.
 => 
 
-asset_filename: karpathy-profile-pic-image-9x16.webp
+asset_filenames: [karpathy-profile-pic-image-9x16.webp]
 narration: "Andrej Karpathy shares his insights on this architectural marvel, mentioning the introduction of Grouped Query Attention across all models, a game-changer in optimizing AI performance."
 
 And
@@ -94,13 +101,13 @@ Narrator (Voiceover): Imagine a world where AI understands us better than ever b
 
 => should be split into two scenes, the first one with no asset_filename and the latter one with the video and a short narration like "Here's Mark Zuckerberg capturing the excitement" (keep it short)
 
-Each scene should have a narration and an optional asset_filename if mentioned in the script.
+Each scene should have a narration and an optional list of asset_filenames if mentioned in the script or otherwise associated from the list of assets.
 
 """
 
     print(prompt)
     event_video = client.chat.completions.create(
-        model="gpt-4",  # @TODO try gpt-4-turbo
+        model="gpt-4-turbo",
         messages=[
             {"role": "system", "content": "You are a video editor screenwriting and then cutting a TV news / social media video."},
             {"role": "user", "content": prompt},
@@ -109,11 +116,11 @@ Each scene should have a narration and an optional asset_filename if mentioned i
         response_model=EventVideo
     )
 
-    event_video.title = title
+    event_video.title = video.title
 
     # @TODO make this a dict and make the scene_type = title. attach the logo / splash
     # Generate the title scene separately
-    title_scene = Scene(narration=title)
+    title_scene = Scene(narration=video.title)
     event_video.scenes.insert(0, title_scene)
 
     # @TODO make this a dict and make the scene_type = outro. attach the logo / splash
@@ -136,8 +143,15 @@ async def extract_scenes(video_id, change_status=True):
         return_document=pymongo.ReturnDocument.AFTER
     )
     video = Video(**video_result)
+    asset_dicts = list(assets_collection.find(
+        {
+            "status": "converted",
+            "request_id": video.request_id,
+            "metadata.aspect_ratio": video.aspect_ratio
+        }))
+    assets = [Asset(**asset_dict) for asset_dict in asset_dicts]
     try:
-        event_video_obj = generate_scenes_with_llm(video.title, video.script)
+        event_video_obj = generate_scenes_with_llm(video, assets)
         scenes_collection.delete_many({"video_id": video_id})
         scenes = []
         for index, scene in enumerate(event_video_obj.scenes):
@@ -151,7 +165,7 @@ async def extract_scenes(video_id, change_status=True):
                 "id": str(ObjectId()),
                 "narration": scene.narration,
                 "scene_type": scene_type,
-                "asset_filename": scene.asset_filename,
+                "asset_filenames": scene.asset_filenames,
                 "status": "generated",
                 "video_id": video_id,
                 "request_id": video.request_id,
@@ -280,7 +294,8 @@ async def find_scripted_videos_and_extract_scenes(max_count=None, batch_size=1, 
     while True:
         try:
             batch = []
-            remaining_count = max_count - processed_count if max_count else float('inf')
+            remaining_count = max_count - \
+                processed_count if max_count else float('inf')
             for _ in range(min(batch_size, remaining_count)):
                 fetch_next_video_result = fetch_next_video_for_scene_extraction(
                     change_status=change_status)

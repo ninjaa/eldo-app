@@ -2,7 +2,7 @@ import datetime
 from bson.objectid import ObjectId
 from pydantic import BaseModel, Field
 from enum import Enum
-from typing import Optional
+from typing import Optional, List
 
 
 class SceneStatus(str, Enum):
@@ -24,7 +24,7 @@ class Scene(BaseModel):
     narration_audio_filename: Optional[str] = None
     narration_language: Optional[str] = None
     duration: Optional[float] = None
-    asset_filename: Optional[str] = None
+    asset_filenames: Optional[List[str]] = None
     prev_scene_id: Optional[str] = None
     next_scene_id: Optional[str] = None
     scene_narration_attempts: int = 0

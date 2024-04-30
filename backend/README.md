@@ -26,6 +26,8 @@ Today @TODO let's clear up the asset generation bit and figure out how the statu
 The truth is that asset description and asset conversion may not have to wait for each other ... should I eke out every ounce? Yes because that's what an ur programmer would do
 Right now each video has one output aspect ratio
 
+
+
 # Arxiv flow
 
 1. call wordware for script
@@ -46,6 +48,7 @@ submit using submit_arxiv_video_request ... let's just cycle through the diagram
 
 https://news.ycombinator.com/item?id=40107787
 https://jsomers.net/i-should-have-loved-biology/
+
 
 
 ## Debugging the Queue
@@ -84,6 +87,17 @@ curl -X POST -H "Content-Type: multipart/form-data" -F "file=@testimonial.mp4" "
 ```
 curl -X POST http://localhost:8000/video-request/$request_id/finalize
 ```
+
+
+## Queue
+
+1. `python cronjobs/describe_uploads.py`
+1. `python cronjobs/spawn_videos.py`
+1. `python cronjobs/convert_assets.py`
+1. `python cronjobs/generate_video_script.py`
+1. `python cronjobs/narrate_scenes.py`
+
+
 ## To Run on Dev
 
 ### WSL2 / Ubuntu / Debian Linux

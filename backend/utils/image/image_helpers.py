@@ -219,7 +219,7 @@ def get_image_prompts(num_images, scene: Scene, video: Video):
         
         These images will be the backdrop of narrated social media reels, so they should be interesting and cool. Do not include anything related to text or logos as SDXL mangles that.
         
-        Avoid text, diagrams, signage and names of people in the prompts. The image generation model will know of "San Francisco" but not of "the city". Also, avoid the word "logo" in the prompts and do not mention company or brand names as the model will not know them and will just generate gibberish. Instead, describe the image in terms of the visuals and the scene.
+        Avoid text, diagrams, signage and names of people in the prompts. The image generation model will know of "San Francisco" but not of "the city". Also, avoid the word "logo" in the prompts and do not mention company or brand names as the model will not know them and will just generate gibberish. Instead, describe the image in terms of the visuals and the scene. NO DIAGRAMS. ABSTRACT ONLY.
         
         Avoid the names of celebrities. Avoid hands, feet, body parts. Do not show visualize futuristic soldiers or superheroes unless specifically demanded by the script.
         

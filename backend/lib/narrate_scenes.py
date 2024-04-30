@@ -35,10 +35,17 @@ async def narrate_scene(scene_id, change_status=True):
     )
     scene = DbScene(**scene_result)
     try:
+        # import pdb
+        # pdb.set_trace()
         # Generate the output directory for scene narrations
         narrations_directory_path = os.path.join(
             UPLOAD_DIRECTORY, scene.request_id, scene.aspect_ratio, "scene_narrations")
         os.makedirs(narrations_directory_path, exist_ok=True)
+        
+        # Ensure the raw_elevenlabs directory exists
+        raw_narrations_directory_path = os.path.join(narrations_directory_path, "raw_elevenlabs")
+        os.makedirs(raw_narrations_directory_path, exist_ok=True)
+
 
         # Escape the narration text
         escaped_narration_text = scene.narration.replace(
@@ -47,10 +54,10 @@ async def narrate_scene(scene_id, change_status=True):
         # Generate the output filename
         audio_filename = f"scene_{scene.id}.mp3"
         raw_output_path = os.path.join(
-            narrations_directory_path, "raw_elevenlabs_", audio_filename)
+            narrations_directory_path, "raw_elevenlabs", audio_filename)
         output_path = os.path.join(narrations_directory_path, audio_filename)
-        # voice_id = 'nPczCjzI2devNBz1zQrb'# Brian
-        voice_id = 'D1oPFWPLjALndiJuOrEC'  # ELDO
+        voice_id = 'nPczCjzI2devNBz1zQrb'# Brian
+        # voice_id = 'D1oPFWPLjALndiJuOrEC'  # ELDO
 
         # Send the scene narration to ElevenLabs for text-to-speech
         curl_command = f'curl --request POST '\
@@ -68,6 +75,7 @@ async def narrate_scene(scene_id, change_status=True):
                        f'}}\' -o "{raw_output_path}"'
 
         subprocess.run(curl_command, shell=True)
+        
 
         # Create silent audio of 0.35 seconds
         silence_file = os.path.join(narrations_directory_path, "silence.mp3")

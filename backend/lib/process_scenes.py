@@ -38,35 +38,38 @@ def preprocess_and_expand_scenes(video_id):
     scene_results = list(db.scenes.find({'video_id': video_id}).sort('_id', 1))
     for scene_result in scene_results:
         scene = Scene(**scene_result)
-        if scene.scene_type == "body" and scene.asset_filename:
-            asset = load_asset(scene.asset_filename)
-            if asset and asset.metadata.content_type.startswith("video") and len(asset.transcript) > 0:
-                logger.info(
-                    f"Preprocessing and expanding scene {scene_result['_id']}")
-                # Update the original scene's status and clear the asset_filename
-                # Create a new scene for the "has_speech" part
-                has_speech_scene = scene_result.copy()
-                has_speech_scene.update({
-                    '_id': str(ObjectId()),
-                    'scene_type': 'has_speech',
-                    'status': 'narration_complete',
-                    'narration': asset.transcript,
-                    'duration': asset.metadata.duration,
-                    'prev_scene_id': scene_result['_id'],
-                    'next_scene_id': scene_result.get('next_scene_id', None)
-                })
-                logger.info(f"Inserting new scene {has_speech_scene['_id']}")
+        if scene.scene_type == "body" and scene.asset_filenames:
+            for asset_filename in scene.asset_filenames:
+                asset = load_asset(asset_filename)
+                if asset and asset.metadata.content_type.startswith("video") and len(asset.transcript) > 0:
+                    logger.info(
+                        f"Preprocessing and expanding scene {scene_result['_id']} with asset {asset_filename}")
+                    # Create a new scene for the "has_speech" part
+                    has_speech_scene = scene_result.copy()
+                    has_speech_scene.update({
+                        '_id': str(ObjectId()),
+                        'scene_type': 'has_speech',
+                        'status': 'narration_complete',
+                        'narration': asset.transcript,
+                        'duration': asset.metadata.duration,
+                        # Include only the relevant asset
+                        'asset_filenames': [asset_filename],
+                        'prev_scene_id': scene_result['_id'],
+                        'next_scene_id': scene_result.get('next_scene_id', None)
+                    })
+                    logger.info(
+                        f"Inserting new scene {has_speech_scene['_id']}")
 
-                # Insert the new "has_speech" scene into the database
-                db.scenes.insert_one(has_speech_scene)
+                    # Insert the new "has_speech" scene into the database
+                    db.scenes.insert_one(has_speech_scene)
 
-                # Update the 'next_scene_id' of the original scene to point to the new "has_speech" scene
-                db.scenes.update_one({'_id': scene_result['_id']}, {
-                                     '$set': {
-                                         'scene_type': 'title',
-                                         'asset_filename': '',
-                                         'next_scene_id': has_speech_scene['_id']
-                                     }})
+                    # Update the 'next_scene_id' of the original scene to point to the new "has_speech" scene
+                    db.scenes.update_one({'_id': scene_result['_id']}, {
+                                         '$set': {
+                                             'scene_type': 'title',
+                                             'asset_filenames': [],
+                                             'next_scene_id': has_speech_scene['_id']
+                                         }})
 
     return True
 

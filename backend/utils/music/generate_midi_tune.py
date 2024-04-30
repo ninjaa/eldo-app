@@ -150,7 +150,24 @@ def convert_midi_to_mp3(midi_file, mp3_file, soundfont_file='/usr/share/sounds/s
     subprocess.run(['rm', temp_file], check=True)
 
 
-def process_music_prompt(prompt, duration):
+def download_and_save_wav_files(urls, output_dir):
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
+
+    for url in urls:
+        response = requests.get(url, stream=True)
+        if response.status_code == 200:
+            file_name = url.split('/')[-1]
+            output_path = os.path.join(output_dir, file_name)
+            with open(output_path, 'wb') as f:
+                for chunk in response.iter_content(chunk_size=8192):
+                    f.write(chunk)
+            print(f"Downloaded and saved: {output_path}")
+        else:
+            print(f"Failed to download {url}")
+
+
+def process_music_prompt(prompt, duration, output_dir=None):
     # Fetch the command and generation pattern to generate MIDI
     c2m_command = fetch_c2m_tune(prompt)
     generation_pattern = fetch_generation_pattern(c2m_command, prompt)
@@ -197,9 +214,16 @@ def process_music_prompt(prompt, duration):
     )
     print(output)
 
+    if output_dir:
+        download_and_save_wav_files(output, output_dir)
+    print("Done")
+
+
 if __name__ == "__main__":
     # music_prompt = "happy triumphant tune for a tv news article with pictures of memes"
     # music_prompt = "inspirational vibes for a news article about an AI engineer completing a new feature in a big office with views of the Bay Bridge in SF on a spring evening"
-    music_prompt = "like a funky cocteau twins song but with a more upbeat and happy feel about a new AI model named llama3"
-    duration = 10  # Duration in seconds
-    process_music_prompt(music_prompt, duration)
+    # music_prompt = "like a funky cocteau twins song but with a more upbeat and happy feel about a new AI model named llama3"
+    music_prompt = "Guy J flying techno but deep house groove"
+    duration = 25  # Duration in seconds
+    output_dir = "media/663085048e5bcf553e4b8be2/9x16/"
+    process_music_prompt(music_prompt, duration, output_dir)

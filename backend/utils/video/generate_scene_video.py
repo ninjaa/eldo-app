@@ -54,33 +54,36 @@ async def generate_scene_body_video(video: Video, scene: Scene, add_subtitles=Fa
     clips = []
 
     # 1. Check if the scene has an asset_filename
-    if scene.asset_filename:
-        asset_result = db.assets.find_one({"filename": scene.asset_filename})
-        asset = None
-        if asset_result:
-            asset = Asset(**asset_result)
+    if scene.asset_filenames:
+        for asset_filename in scene.asset_filenames:
+            asset_result = db.assets.find_one(
+                {"filename": asset_filename})
+            asset = None
+            if asset_result:
+                asset = Asset(**asset_result)
 
-        if asset:
-            asset_path = os.path.join(
-                asset_directory_path, scene.asset_filename)
-            # Assuming you have a way to determine if an asset is a video or image
-            if asset_is_video(asset):
-                # 2. Use the video's duration
-                asset_duration = min(asset.metadata.duration, scene.duration)
-                clips.append(get_video_clip(
-                    asset_path, asset_duration))
-                total_asset_duration += asset_duration
-            elif asset_is_image(asset):
-                # 3. For an image, use a fixed duration of 2.5 seconds
-                # @TODO @NOTE sd img2video looks terrible for user media in many cases - look at settings
-                # if generate_img2video:
-                #     video_path = await generate_video_from_image(scene, asset_path)
-                #     clips.append(VideoFileClip(video_path).resize(
-                #         SCREEN_SIZE).set_duration(2.5))
-                # else:
-                clips.append(ImageClip(asset_path).resize(
-                    SCREEN_SIZE).set_duration(2.5))
-                total_asset_duration += 2.5
+            if asset:
+                asset_path = os.path.join(
+                    asset_directory_path, asset_filename)
+                # Assuming you have a way to determine if an asset is a video or image
+                if asset_is_video(asset):
+                    # 2. Use the video's duration
+                    asset_duration = min(
+                        asset.metadata.duration, scene.duration)
+                    clips.append(get_video_clip(
+                        asset_path, asset_duration))
+                    total_asset_duration += asset_duration
+                elif asset_is_image(asset):
+                    # 3. For an image, use a fixed duration of 2.5 seconds
+                    # @TODO @NOTE sd img2video looks terrible for user media in many cases - look at settings
+                    # if generate_img2video:
+                    #     video_path = await generate_video_from_image(scene, asset_path)
+                    #     clips.append(VideoFileClip(video_path).resize(
+                    #         SCREEN_SIZE).set_duration(2.5))
+                    # else:
+                    clips.append(ImageClip(asset_path).resize(
+                        SCREEN_SIZE).set_duration(2.5))
+                    total_asset_duration += 2.5
 
     # 4. Calculate the gap and generate additional images if needed
     gap_duration = scene.duration - total_asset_duration

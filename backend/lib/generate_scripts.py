@@ -30,7 +30,7 @@ def generate_title_and_script(video: Video, assets: List[Asset]):
     video_json = video.model_dump_json(indent=2)
     assets_json = [asset.model_dump_json(indent=2) for asset in assets]
 
-    api_token = os.getenv("MISTRAL_API_KEY")
+    # api_token = os.getenv("MISTRAL_API_KEY")
     client = openai.OpenAI(
         # base_url="https://api.mistral.ai/v1",
         # api_key=api_token
@@ -59,7 +59,7 @@ def generate_title_and_script(video: Video, assets: List[Asset]):
     Please include Narrator (Voiceover) as well as associated assets for the storyboard (they can be videos too). If there's testimonials or any other videos with speech in the assets, you can name those assets those as well, they are valuable.
     
     The format should be like
-    [asset-filename.mp4]
+    [asset-filename.jpg, asset-filename2.png, asset-filename3.jpg]
     Narrator (Voiceover): narration for the asset / scene
     
     Please keep the script to under {number_of_words} words this is for a {video.length} second {video_format} {video.style}.
@@ -70,15 +70,15 @@ def generate_title_and_script(video: Video, assets: List[Asset]):
     The assets to use are as follows:
     {assets_json}
     
-    If you use an asset that has speech, please keep the related narration to just a handful of words as they will likely be used in a title slide.
+    If you use an asset that has speech, please keep the related narration to just a handful of words as they will likely be used in a title slide. Please use no other assets in the scene in that case. If you are using assets without speech, feel free to use upto 6 per scene. No need to be shy. Be generous. Use diagrams if they are available. They usually start with "Figure" and are towards teh end of the assets.
+     
+    If you use an asset that is a picture of a person, please be sure the name or names of those people are made explicit in the narration.
     
-    If you use an asset that is a picture of a person, please be sure the name or names of those people are made explicit in the narration. 
-    
-    Feel free to cite them if they are directy quoted in the source. According to Karpathy ... etc. We will not actually be cutting to scenes, just storyboarding so it's imporant people be named in the narration as well as it be explained what their connection is to the story.
+    Feel free to cite them if they are directy quoted in the source. According to Karpathy ... etc. We will not actually be cutting to scenes, just storyboarding so it's important people be named in the narration as well as it be explained what their connection is to the story.
     
     If the date is cited, feel free to mention it if is relevant.
     
-    The video will be for social media so the intro hook is vital. Please make it very engaging and entertaining. 
+    The video will be for social media so the intro hook is vital. Please make it very engaging and entertaining.
     Also, factual, i.e. please stick to information in the script provided above that has already been fact-checked by editors.
     
     Do not mention brand names or company names too often. Do mention them, just don't overdo it by mentioning them in every single scene. Instead, name the other participants in the story.
@@ -91,8 +91,7 @@ def generate_title_and_script(video: Video, assets: List[Asset]):
     
     PLEASE STICK TO INFORMATION IN THE VIDEO SCRIPT PROVIDED AS IT HAS BEEN FACT-CHECKED.
     
-    
-    Please provide your title and script as JSON in the following format
+    Please provide your title and script as JSON in the following format. The script value should be a string, not json.
     
         {{ 
         "title" : "some title for a compelling video", 
@@ -105,13 +104,13 @@ def generate_title_and_script(video: Video, assets: List[Asset]):
 
     chat_completion = client.chat.completions.create(
         # model="mistral-large-latest",
-        model="gpt-4",
+        model="gpt-4-turbo",
         messages=[
             {"role": "system", "content": "You are a video editor screenwriting and then cutting a TV news / social media video."},
             {"role": "user", "content": prompt},
         ],
         temperature=0,
-        max_tokens=1000
+        max_tokens=3000
     )
 
     answer = chat_completion.choices[0].message.content.strip()
