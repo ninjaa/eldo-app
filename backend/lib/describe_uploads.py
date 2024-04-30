@@ -1,3 +1,4 @@
+import json
 import asyncio
 import pymongo
 import datetime
@@ -70,8 +71,9 @@ async def describe_upload(upload_id: str):
 
                 # Calculate description duration
                 description_end_time = datetime.datetime.now()
-                description_duration = (description_end_time - upload.description_start_time).total_seconds()
-                
+                description_duration = (
+                    description_end_time - upload.description_start_time).total_seconds()
+
                 # Update the asset description
                 uploads_collection.update_one(
                     {"_id": upload_id},
@@ -93,8 +95,12 @@ async def describe_upload(upload_id: str):
             if upload.content_type.startswith("image"):
                 logger.info(
                     f"Describing image upload {upload_id} with filename {upload.filename}")
+                additional_context = f"filename is {upload.filename}"
+                if hasattr(upload, 'annotations') and upload.annotations:
+                    additional_context += f", annotations: {json.dumps(upload.annotations)}"
+
                 description_task = describe_image(
-                    upload.file_path, f"filename is ${upload.filename}")
+                    upload.file_path, additional_context)
 
                 is_logo_task = is_image_logo(upload.file_path)
                 is_profile_pic_task = is_image_profile_pic(upload.file_path)
@@ -106,8 +112,9 @@ async def describe_upload(upload_id: str):
 
                 # Calculate description duration
                 description_end_time = datetime.datetime.now()
-                description_duration = (description_end_time - upload.description_start_time).total_seconds()
-                
+                description_duration = (
+                    description_end_time - upload.description_start_time).total_seconds()
+
                 # Update the asset description
                 uploads_collection.update_one(
                     {"_id": upload_id},

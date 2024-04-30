@@ -58,7 +58,7 @@ def is_transcript_usable(transcript: str) -> bool:
 
     answer = chat_completion.choices[0].message.content.strip().lower()
     print(f"Answer about whether transcript has speech: {answer}")
-    return "yes" in answer
+    return "yes" in answer.lower()
 
 
 def tidy_transcript(description: str, raw_transcript: str, duration: float) -> str:
@@ -75,6 +75,8 @@ def tidy_transcript(description: str, raw_transcript: str, duration: float) -> s
     duration: {duration} seconds
 
     PLEASE ONLY RETURN THE TRANSCRIPT WITH SPEAKERS NAMED. DO NOT ADD ANY OTHER COMMENTS OR CONTENT OTHER THAN THE FINAL TRANSCRIPT.
+    
+    IF YOU CAN'T NAME A SPEAKER, JUST RETURN THE TRANSCRIPT WITHOUT ANY SPEAKERS NAMED.
     
     raw_transcript: {raw_transcript}
     
