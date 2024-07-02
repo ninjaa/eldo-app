@@ -94,7 +94,8 @@ curl -X POST http://localhost:8000/video-request/$request_id/finalize
 1. `python cronjobs/describe_uploads.py`
 1. `python cronjobs/spawn_videos.py`
 1. `python cronjobs/convert_assets.py`
-1. `python cronjobs/generate_video_script.py`
+1. `python cronjobs/generate_video_scripts.py`
+1. `python cronjobs/extract_scenes.py`
 1. `python cronjobs/narrate_scenes.py`
 
 
