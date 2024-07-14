@@ -206,7 +206,23 @@ Potential papers to target:
 - https://jsomers.net/i-should-have-loved-biology/
 
 
-## Debugging the Queue
+## Publishing
+
+When publishing to Twitter, the audio codec is off
+
+```
+ffmpeg -i final_cut_20240713112238.mp4 -c:v copy -c:a aac -b:a 192k final_cut_fixed_audio.mp4
+```
+
+You can feed this probe output to ChatG for feedback on what might be wrong
+```
+ffprobe -v error -show_format -show_streams input.mp4
+```
+
+NB right now the app only makes 9x16 (vertical) videos. Need to iterate and nail down 16x9 soon.
+
+
+## SCRATCH
 
 Change MONGO_DB_NAME parameter to `cut-copy-dev` instead of `cut-copy-prod` (PROD MONGO_DB_NAME)
 
