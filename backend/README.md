@@ -52,14 +52,15 @@ and then reran and that was it
 
 then install the .env file
 
+You can see the .env.example, it's pretty straightforward to figure out. REPLICATE is not needed at this time. UPSTAGE is used by diagrammatic, so needed for Arxiv 2 video.
+
 
 #### Reset
 
 ```bash
 python scripts/restore_mongo_db.py clean-dev
 ```
-+
-Deleting all the folders in media directory
+Also, delete all the folders in media directory
 
 
 ## Running Server
