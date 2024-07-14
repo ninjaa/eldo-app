@@ -141,6 +141,7 @@ Enjoy your movie!
 
 1. Folder structure for input before starting:
 
+```
 PDF_SOURCE_HOME/
 ├── uploads/
 ├── script.txt
@@ -148,16 +149,19 @@ PDF_SOURCE_HOME/
 ├── diagrams/
 ├── [arxiv_id]figure_list.json
 └── [arxiv_id].pdf
+```
 
 arxiv_id = "2403.04330"
 clean_arxiv_id = "240304330"
+
+difference is that clean removes all non alphanumeric chars
 
 Where `PDF_SOURCE_HOME = ~/eldo/eldo-app/backend/media/pdfs/[clean_arxiv_id]`
 
 2. Generate [diagrammatic](https://github.com/stephenkfrey/diagrammatic) diagrams:
    - Switch to the diagrammatic folder
    - Put the PDF in the `sample_data` directory
-   - Run: `UPSTAGE_API_KEY=XYZ python image_extraction_pipeline.py sample_data/[pdf_name].pdf`
+   - Run: `UPSTAGE_API_KEY=XYZ python image_extraction_pipeline.py sample_data/[arxiv_id].pdf`
    - Copy contents of `output_figures` to `PDF_SOURCE_HOME/`:
      - `PDF_SOURCE_HOME/figures.json`
      - `PDF_SOURCE_HOME/diagrams/Figure 1.png`, etc.
@@ -175,12 +179,17 @@ scripts/fetch_technical_paper_script.py
 ```
 python scripts/fetch_technical_paper_script.py --pdf-url https://arxiv.org/pdf/[arxiv_id] --audience-type "AI engineers"
 ```
-Note: If script generation fails, use the Wordware console [here](https://app.wordware.ai/r/ee826b07-7786-4fa3-9173-f9c69283fed2) and save output to `script.txt`in PDF_SOURCE folder. This script was broken when we tested it last, but in a minor way so fix it when we have time.
+Note: If script generation fails, use the Wordware console [here](https://app.wordware.ai/r/ee826b07-7786-4fa3-9173-f9c69283fed2) and save output to `script.txt`in PDF_SOURCE_HOME folder. This script was broken when we tested it last, but in a minor way so fix it when we have time.
 
 
 5. Add logo url to PDF_SOURCE_HOME/images/logo.png
 
-6. Submit using submit_arxiv_video_request ... 
+6. Submit using 
+```bash
+python scripts/submit_arxiv_video_request.py 
+```
+
+this will ask you for a relative path to the PDF_SOURCE_HOME, e.g. media/pdfs/[clean_arxiv_id]
 
 
 #### Arxiv flow improvements
