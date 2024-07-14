@@ -191,6 +191,10 @@ python scripts/submit_arxiv_video_request.py
 
 this will ask you for a relative path to the PDF_SOURCE_HOME, e.g. media/pdfs/[clean_arxiv_id]
 
+7. Run the video request pipeline!
+
+You can also check that old videos in MongoDB have been moved to the "generated" status. This hasn't been done in the code yet, but it's something we should do. Cos debugging, all generations are supervised right now.
+
 
 #### Arxiv flow improvements
 
