@@ -41,6 +41,8 @@ def get_video_clip(filename: str, duration: float = None):
         clip = clip.subclip(0, duration)
     return clip
 
+ASSET_DURATION = 4.0
+GENERATED_IMAGE_DURATION = 2.5
 
 async def generate_scene_body_video(video: Video, scene: Scene, add_subtitles=False, add_narration=False, generate_img2video=False):
     ratio_settings = ASPECT_RATIO_SETTINGS.get(
@@ -82,21 +84,21 @@ async def generate_scene_body_video(video: Video, scene: Scene, add_subtitles=Fa
                     #         SCREEN_SIZE).set_duration(2.5))
                     # else:
                     clips.append(ImageClip(asset_path).resize(
-                        SCREEN_SIZE).set_duration(2.5))
-                    total_asset_duration += 2.5
+                        SCREEN_SIZE).set_duration(ASSET_DURATION))
+                    total_asset_duration += ASSET_DURATION
 
     # 4. Calculate the gap and generate additional images if needed
     gap_duration = scene.duration - total_asset_duration
 
     # Calculate the number of images to generate
-    num_images = int(gap_duration // 2.5) + \
-        (1 if gap_duration % 2.5 > 0 else 0)
+    num_images = int(gap_duration // GENERATED_IMAGE_DURATION) + \
+        (1 if gap_duration % GENERATED_IMAGE_DURATION > 0 else 0)
 
     # Generate prompts and durations
     image_prompts = get_image_prompts(num_images, scene, video)
     image_prompts_and_durations = []
     for prompt in image_prompts:
-        duration = 2.5 if gap_duration >= 2.5 else gap_duration
+        duration = GENERATED_IMAGE_DURATION if gap_duration >= GENERATED_IMAGE_DURATION else gap_duration
         # Append to the new list instead
         image_prompts_and_durations.append((prompt, duration))
         gap_duration -= duration
