@@ -12,10 +12,15 @@ from constants import PDF_DOWNLOAD_FOLDER
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
-        description="Convert a pdf to a set of screenshots.")
-    parser.add_argument("url", help="Url to remote pdf.")
+        description="Convert a pdf to a set of screenshots."
+    )
+    parser.add_argument("pdf_source", help="URL or local file path to PDF.")
 
     args = parser.parse_args()
 
-    pdf_path = download_and_save_pdf(args.url, PDF_DOWNLOAD_FOLDER)
+    if args.pdf_source.startswith(("http://", "https://")):
+        pdf_path = download_and_save_pdf(args.pdf_source, PDF_DOWNLOAD_FOLDER)
+    else:
+        pdf_path = args.pdf_source
+
     convert_pdf_to_png(pdf_path)
