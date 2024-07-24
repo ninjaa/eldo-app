@@ -82,12 +82,13 @@ In order
 1. `python cronjobs/generate_video_scripts.py`
 1. `python cronjobs/extract_scenes.py`
 1. `python cronjobs/narrate_scenes.py`
+1. `python cronjobs/generate_video.py`
 
 
 
 ### Backups
 
-`python scripts/dumb_mongo_db.py`
+`python scripts/dump_mongo_db.py`
 `python scripts/restore_mongo_db.py`
 
 
