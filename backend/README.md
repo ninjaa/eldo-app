@@ -171,8 +171,15 @@ Where `PDF_SOURCE_HOME = ~/eldo/eldo-app/backend/media/pdfs/[clean_arxiv_id]`
 3. How do I do the image chopping of the pdf? 
 scripts/convert_pdf_to_images
 ```
-python scripts/convert_pdf_to_images.py --url "https://arxiv.org/pdf/[arxiv_id]"
+python scripts/convert_pdf_to_images.py "https://arxiv.org/pdf/[arxiv_id]"
 ```
+
+OR use a pdf file path
+
+```
+python scripts/convert_pdf_to_images.py media/pdf/[arxiv_id].pdf
+```
+
 
 4. call wordware for script
 
