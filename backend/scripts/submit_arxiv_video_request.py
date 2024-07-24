@@ -59,7 +59,7 @@ def submit_video_request(folder_path):
         # Upload and post annotations for matched diagrams
         diagrams_folder = os.path.join(folder_path, 'diagrams')
         for figure in figure_list:
-            import pdb; pdb.set_trace()
+            # import pdb; pdb.set_trace()
             image_name = figure['image_name']
             image_caption = figure['image_caption']
             image_description = figure['image_descriptions']
