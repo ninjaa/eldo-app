@@ -82,12 +82,13 @@ In order
 1. `python cronjobs/generate_video_scripts.py`
 1. `python cronjobs/extract_scenes.py`
 1. `python cronjobs/narrate_scenes.py`
+1. `python cronjobs/generate_video.py`
 
 
 
 ### Backups
 
-`python scripts/dumb_mongo_db.py`
+`python scripts/dump_mongo_db.py`
 `python scripts/restore_mongo_db.py`
 
 
@@ -170,8 +171,15 @@ Where `PDF_SOURCE_HOME = ~/eldo/eldo-app/backend/media/pdfs/[clean_arxiv_id]`
 3. How do I do the image chopping of the pdf? 
 scripts/convert_pdf_to_images
 ```
-python scripts/convert_pdf_to_images.py --url "https://arxiv.org/pdf/[arxiv_id]"
+python scripts/convert_pdf_to_images.py "https://arxiv.org/pdf/[arxiv_id]"
 ```
+
+OR use a pdf file path
+
+```
+python scripts/convert_pdf_to_images.py media/pdf/[arxiv_id].pdf
+```
+
 
 4. call wordware for script
 
